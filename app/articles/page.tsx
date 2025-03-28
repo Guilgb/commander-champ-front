@@ -10,154 +10,30 @@ import Link from "next/link"
 import { FeaturedArticles } from "@/components/featured-articles"
 import { Bookmark, Calendar, Clock, Eye, MessageSquare, Search, Tag } from "lucide-react"
 import { useState } from "react"
+import api from '@/service/api'
+import { Articles } from "./types"
+import { useEffect } from "react"
 
-// Mock data para artigos
-const articles = [
-  {
-    id: "1",
-    title: "Top 10 Comandantes Abaixo de R$10",
-    excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "10/04/2023",
-    readTime: "8 min",
-    views: 1250,
-    comments: 24,
-    featured: true,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "João Silva",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["budget", "comandantes", "iniciantes"],
-  },
-  {
-    id: "2",
-    title: "Guia de Construção para Iniciantes",
-    excerpt: "Aprenda a construir seu primeiro deck de Commander 500 com este guia passo a passo.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "05/04/2023",
-    readTime: "12 min",
-    views: 980,
-    comments: 18,
-    featured: true,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Maria Souza",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["guia", "iniciantes", "construção"],
-  },
-  {
-    id: "3",
-    title: "Análise do Meta Pós-Banimentos",
-    excerpt: "Como o meta evoluiu após os últimos banimentos e quais estratégias estão em alta.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "01/04/2023",
-    readTime: "10 min",
-    views: 850,
-    comments: 15,
-    featured: false,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Carlos Oliveira",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["meta", "análise", "banimentos"],
-  },
-  {
-    id: "4",
-    title: "Estratégias Avançadas com Decks Tribais",
-    excerpt: "Descubra como maximizar a sinergia em decks tribais para competir em alto nível.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "28/03/2023",
-    readTime: "15 min",
-    views: 720,
-    comments: 12,
-    featured: true,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Rafael Oliveira",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["tribal", "estratégia", "avançado"],
-  },
-  {
-    id: "5",
-    title: "Os Melhores Removedores para Commander 500",
-    excerpt: "Uma análise completa das melhores opções de remoção dentro do orçamento do formato.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "20/03/2023",
-    readTime: "9 min",
-    views: 680,
-    comments: 10,
-    featured: false,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Juliana Santos",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["remoção", "análise", "staples"],
-  },
-  {
-    id: "6",
-    title: "Construindo Mesas Saudáveis no Commander 500",
-    excerpt: "Como criar um ambiente de jogo equilibrado e divertido para todos os jogadores.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "15/03/2023",
-    readTime: "7 min",
-    views: 590,
-    comments: 8,
-    featured: false,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Lucas Mendes",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["comunidade", "etiqueta", "equilíbrio"],
-  },
-  {
-    id: "7",
-    title: "Guia Completo de Mana Base Budget",
-    excerpt: "Como construir uma base de mana eficiente sem gastar muito dinheiro.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "10/03/2023",
-    readTime: "11 min",
-    views: 820,
-    comments: 14,
-    featured: false,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Ana Costa",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["mana base", "budget", "terras"],
-  },
-  {
-    id: "8",
-    title: "Combos Infinitos Abaixo de R$100",
-    excerpt: "Conheça os combos infinitos mais acessíveis para o formato Commander 500.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "05/03/2023",
-    readTime: "13 min",
-    views: 950,
-    comments: 20,
-    featured: false,
-    coverImage: "/placeholder.svg?height=400&width=800",
-    author: {
-      name: "Pedro Alves",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["combo", "budget", "infinito"],
-  },
-]
+// const articles = [
+//   {
+//     id: "1",
+//     title: "Top 10 Comandantes Abaixo de R$10",
+//     excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
+//     content:
+//       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
+//     date: "10/04/2023",
+//     readTime: "8 min",
+//     views: 1250,
+//     comments: 24,
+//     featured: true,
+//     coverImage: "/placeholder.svg?height=400&width=800",
+//     author: {
+//       name: "João Silva",
+//       avatar: "/placeholder.svg?height=40&width=40",
+//     },
+//     tags: ["budget", "comandantes", "iniciantes"],
+//   },
+// ]
 
 // Categorias de artigos
 const categories = [
@@ -170,13 +46,27 @@ const categories = [
 ]
 
 export default function ArticlesPage() {
+  // todo tipar o article
+  const [articles, setArticles] = useState<Articles[] | undefined>()
   const [searchTerm, setSearchTerm] = useState("")
 
+  useEffect(() => {
+    // Buscar artigos da API
+    api
+      .get("/articles")
+      .then((res) => {
+        setArticles(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
   // Filtrar artigos em destaque
-  const featuredArticles = articles.filter((article) => article.featured)
+  const featuredArticles = articles?.filter((article) => article.featured)
 
   // Ordenar artigos por data (mais recentes primeiro)
-  const latestArticles = [...articles].sort(
+  const latestArticles = [...(articles ?? [])].sort(
     (a, b) =>
       new Date(b.date.split("/").reverse().join("-")).getTime() -
       new Date(a.date.split("/").reverse().join("-")).getTime(),
@@ -217,7 +107,7 @@ export default function ArticlesPage() {
       {!searchTerm && (
         <section>
           <h2 className="text-2xl font-bold mb-4">Em Destaque</h2>
-          <FeaturedArticles articles={featuredArticles} />
+          <FeaturedArticles articles={featuredArticles ?? []} />
         </section>
       )}
 
@@ -324,21 +214,21 @@ export default function ArticlesPage() {
 
             {filteredArticles.filter((article) => category.id === "all" || article.tags.includes(category.id))
               .length === 0 && (
-              <div className="text-center p-8 bg-muted rounded-lg">
-                <p className="text-muted-foreground">
-                  {searchTerm
-                    ? `Nenhum artigo encontrado para "${searchTerm}" nesta categoria.`
-                    : "Nenhum artigo encontrado nesta categoria."}
-                </p>
-              </div>
-            )}
+                <div className="text-center p-8 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">
+                    {searchTerm
+                      ? `Nenhum artigo encontrado para "${searchTerm}" nesta categoria.`
+                      : "Nenhum artigo encontrado nesta categoria."}
+                  </p>
+                </div>
+              )}
 
             {filteredArticles.filter((article) => category.id === "all" || article.tags.includes(category.id)).length >
               0 && (
-              <div className="flex justify-center mt-8">
-                <Button variant="outline">Carregar mais artigos</Button>
-              </div>
-            )}
+                <div className="flex justify-center mt-8">
+                  <Button variant="outline">Carregar mais artigos</Button>
+                </div>
+              )}
           </TabsContent>
         ))}
       </Tabs>

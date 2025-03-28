@@ -5,7 +5,7 @@ const rules = [
   {
     title: "Limite de Preço",
     description:
-      "O deck completo, incluindo o comandante, não pode exceder o valor de R$ 500,00 baseado nos preços médios do mercado brasileiro.",
+      "O deck completo, excluindo o comandante, não pode exceder o valor de R$ 500,00 baseado nos preço mínimo pela plataforma LigaMagic.",
     icon: Coins,
     color: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
   },
@@ -17,24 +17,11 @@ const rules = [
     color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
   },
   {
-    title: "Proxies",
-    description: "Proxies são permitidas desde que representem cards que estejam dentro do limite de preço do formato.",
+    title: "Validade das Listas",
+    description:
+      `A verificação da validade da data de criação das listas pode variar de acordo com as regras de cada local/evento. \n\nDentre as possibilidades comumente adotadas há:\n\n- Listas devem possuir data igual ou inferior a 07 dias anterior a data do evento.\n\n- Listas devem possuir data igual ou inferior a 30 dias anterior a data do evento.\n\n- Listas possuem validade de Janeiro a Junho pra eventos que se iniciem no mesmo período. Assim como listas possuem validade de Julho a Dezembro para eventos que se iniciam no mesmo período.`,
     icon: FileText,
     color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-  },
-  {
-    title: "Verificação de Preço",
-    description:
-      "Os preços são verificados usando a média de preços de sites brasileiros de venda de cards no momento do torneio.",
-    icon: Scale,
-    color: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
-  },
-  {
-    title: "Atualizações de Preço",
-    description:
-      "A cada 3 meses, os preços são reavaliados e os decks podem precisar ser ajustados para o próximo torneio oficial.",
-    icon: Clock,
-    color: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   },
 ]
 
@@ -54,7 +41,7 @@ export function RulesList() {
             <CardTitle className="text-lg">{rule.title}</CardTitle>
           </CardHeader>
           <CardContent className="py-2">
-            <p>{rule.description}</p>
+            <p style={{ whiteSpace: "pre-wrap" }}>{rule.description}</p>
           </CardContent>
         </Card>
       ))}
@@ -70,4 +57,3 @@ export function RulesList() {
     </div>
   )
 }
-
