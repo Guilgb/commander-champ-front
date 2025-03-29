@@ -10,7 +10,7 @@ import { CardRanking } from "@/components/card-ranking"
 
 export default function MetricsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <h1 className="text-3xl font-bold">Métricas de Torneios</h1>
 
       <Tabs defaultValue="commanders" className="w-full">
@@ -19,38 +19,31 @@ export default function MetricsPage() {
           <TabsTrigger value="cards">Cards</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="commanders" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <CommanderFilter />
-            </div>
-          </div>
+        <TabsContent value="commanders" className="space-y-8">
+          {/* Filtros */}
+          <CommanderFilter />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CommanderWinrateChart />
+          {/* Gráficos */}
+          <div className="space-y-8">
             <TopPercentageChart />
+            <CommanderPerformanceStats />
           </div>
 
-          <CommanderPerformanceStats />
-
-          {/* Commander Ranking movido para baixo dos gráficos */}
+          {/* Ranking */}
           <CommanderRanking />
         </TabsContent>
 
-        <TabsContent value="cards" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <CardFilter />
-            </div>
-          </div>
+        <TabsContent value="cards" className="space-y-8">
+          {/* Filtros */}
+          <CardFilter />
 
+          {/* Gráficos */}
           <PopularCardsChart />
 
-          {/* Adicionar o CardRanking aqui, abaixo das métricas de torneio */}
+          {/* Ranking */}
           <CardRanking />
         </TabsContent>
       </Tabs>
     </div>
   )
 }
-

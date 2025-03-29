@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import { HelpCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function CreateArticlePage() {
   const { user, isAuthenticated } = useAuth()
@@ -23,6 +25,10 @@ export default function CreateArticlePage() {
     excerpt: "",
     content: "",
     tags: "",
+    topic_id: 2, // Valor padrão
+    read_time: "5 min", // Valor padrão
+    featured: false,
+    cover_image: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -70,16 +76,37 @@ export default function CreateArticlePage() {
 
     setIsSubmitting(true)
 
+    // Preparar os dados para envio
+    const articleData = {
+      ...formData,
+      user_id: user?.id || 4, // Usar o ID do usuário autenticado ou o valor padrão
+      views: 1,
+      comments: 0,
+    }
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    toast({
-      title: "Artigo criado",
-      description: "Seu artigo foi publicado com sucesso.",
-    })
+    console.log("Enviando dados do artigo:", articleData)
 
     setIsSubmitting(false)
-    router.push("/articles")
+    // Limpar o formulário para permitir a criação de um novo artigo
+    setFormData({
+      title: "",
+      excerpt: "",
+      content: "",
+      tags: "",
+      topic_id: 2,
+      read_time: "5 min",
+      featured: false,
+      cover_image: "",
+    })
+
+    toast({
+      title: "Artigo criado",
+      description:
+        "Seu artigo foi publicado com sucesso. Você pode criar outro artigo ou navegar para a lista de artigos.",
+    })
   }
 
   if (!isAuthenticated || (user?.role !== "EDITOR" && user?.role !== "ADMIN")) {
@@ -159,6 +186,56 @@ export default function CreateArticlePage() {
                 onChange={handleChange}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="topic_id">Tópico</Label>
+              <Select
+                value={formData.topic_id.toString()}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, topic_id: Number.parseInt(value) }))}
+              >
+                <SelectTrigger id="topic_id">
+                  <SelectValue placeholder="Selecione um tópico" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Estratégia</SelectItem>
+                  <SelectItem value="2">Deck Tech</SelectItem>
+                  <SelectItem value="3">Meta</SelectItem>
+                  <SelectItem value="4">Budget</SelectItem>
+                  <SelectItem value="5">Comunidade</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="read_time">Tempo de Leitura</Label>
+              <Input
+                id="read_time"
+                name="read_time"
+                placeholder="5 min"
+                value={formData.read_time}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cover_image">URL da Imagem de Capa</Label>
+              <Input
+                id="cover_image"
+                name="cover_image"
+                placeholder="https://exemplo.com/imagem.jpg"
+                value={formData.cover_image}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="featured"
+                checked={formData.featured}
+                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked === true }))}
+              />
+              <Label htmlFor="featured">Destacar artigo na página inicial</Label>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" type="button" onClick={() => router.back()}>
@@ -173,4 +250,3 @@ export default function CreateArticlePage() {
     </div>
   )
 }
-

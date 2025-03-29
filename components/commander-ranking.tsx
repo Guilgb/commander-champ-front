@@ -12,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
 import { CommanderDetails } from "@/components/commander-details"
 
-// Mock data for commander ranking
 const commanderRankingData = [
   {
     id: "1",
@@ -23,6 +22,7 @@ const commanderRankingData = [
     draws: 0,
     tournaments: 8,
     colors: "UB",
+    partner: null,
   },
   {
     id: "2",
@@ -33,6 +33,7 @@ const commanderRankingData = [
     draws: 1,
     tournaments: 7,
     colors: "WUBG",
+    partner: null,
   },
   {
     id: "3",
@@ -43,9 +44,32 @@ const commanderRankingData = [
     draws: 0,
     tournaments: 6,
     colors: "RGWU",
+    partner: null,
   },
   {
     id: "4",
+    name: "Thrasios, Triton Hero",
+    winrate: 66,
+    wins: 16,
+    losses: 8,
+    draws: 0,
+    tournaments: 6,
+    colors: "UG",
+    partner: "Tymna the Weaver",
+  },
+  {
+    id: "5",
+    name: "Tymna the Weaver",
+    winrate: 65,
+    wins: 15,
+    losses: 8,
+    draws: 0,
+    tournaments: 6,
+    colors: "WB",
+    partner: "Thrasios, Triton Hero",
+  },
+  {
+    id: "6",
     name: "Kaalia of the Vast",
     winrate: 64,
     wins: 16,
@@ -53,9 +77,10 @@ const commanderRankingData = [
     draws: 0,
     tournaments: 6,
     colors: "RWB",
+    partner: null,
   },
   {
-    id: "5",
+    id: "7",
     name: "Gishath, Sun's Avatar",
     winrate: 60,
     wins: 15,
@@ -63,9 +88,10 @@ const commanderRankingData = [
     draws: 2,
     tournaments: 5,
     colors: "RGW",
+    partner: null,
   },
   {
-    id: "6",
+    id: "8",
     name: "Krenko, Mob Boss",
     winrate: 56,
     wins: 14,
@@ -73,9 +99,21 @@ const commanderRankingData = [
     draws: 0,
     tournaments: 5,
     colors: "R",
+    partner: null,
   },
   {
-    id: "7",
+    id: "9",
+    name: "Silas Renn, Seeker Adept",
+    winrate: 52,
+    wins: 13,
+    losses: 12,
+    draws: 0,
+    tournaments: 5,
+    colors: "UB",
+    partner: "Akiri, Line-Slinger",
+  },
+  {
+    id: "10",
     name: "Muldrotha, the Gravetide",
     winrate: 48,
     wins: 12,
@@ -83,9 +121,10 @@ const commanderRankingData = [
     draws: 3,
     tournaments: 5,
     colors: "BUG",
+    partner: null,
   },
   {
-    id: "8",
+    id: "11",
     name: "Talrand, Sky Summoner",
     winrate: 40,
     wins: 10,
@@ -93,6 +132,7 @@ const commanderRankingData = [
     draws: 3,
     tournaments: 4,
     colors: "U",
+    partner: null,
   },
 ]
 
@@ -226,6 +266,7 @@ export function CommanderRanking() {
                 <TableHead className="w-[50px]">Rank</TableHead>
                 <TableHead>Comandante</TableHead>
                 <TableHead>Cores</TableHead>
+                <TableHead>Partner</TableHead>
                 <TableHead className="text-right">Winrate</TableHead>
                 <TableHead className="text-right">V/D/E</TableHead>
                 <TableHead className="text-right">Torneios</TableHead>
@@ -257,6 +298,18 @@ export function CommanderRanking() {
                     </div>
                   </TableCell>
                   <TableCell>{getColorBadge(commander.colors)}</TableCell>
+                  <TableCell>
+                    {commander.partner ? (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <span>Partner com</span>
+                          <span className="font-semibold">{commander.partner}</span>
+                        </Badge>
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
                   <TableCell className="text-right font-medium">
                     <Badge variant={commander.winrate >= 60 ? "default" : "outline"}>{commander.winrate}%</Badge>
                   </TableCell>
