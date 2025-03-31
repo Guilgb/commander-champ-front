@@ -1,8 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
+import { verifyToken, isTokenExpired, type JWTPayload } from "./jwt"
+import api from "@/service/api"
+import { useRouter } from "next/navigation"
 
 type User = {
   id: string
@@ -18,62 +20,139 @@ type AuthContextType = {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  getToken: () => Promise<string | null>
+}
+
+type UserRolesType = {
+  id: number
+  name: string
+  email: string
+  role: "USER" | "EDITOR" | "TOURNAMENT_ADMIN" | "ADMIN"
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
-  logout: () => {},
+  login: async () => { },
+  logout: () => { },
+  getToken: async () => null,
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    // Verificar se o usuário está logado a partir do token JWT
+    const checkAuth = async () => {
+      const token = localStorage.getItem("auth_token")
+      
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+      
+      // Verificar se o token está expirado
+      if (isTokenExpired(token)) {
+        localStorage.removeItem("auth_token")
+        setIsLoading(false)
+        return
+      }
+      
+      try {
+        // Verificar e decodificar o token
+        const payload = await verifyToken(token)
+        
+        // Definir o usuário a partir do payload do token
+        setUser({
+          id: payload.id,
+          name: payload.name,
+          email: payload.email,
+          role: payload.role as User["role"],
+        })
+      } catch (error) {
+        // Se o token for inválido, remover do localStorage
+        localStorage.removeItem("auth_token")
+      } finally {
+        setIsLoading(false)
+      }
     }
-    setIsLoading(false)
+    
+    checkAuth()
   }, [])
 
   const login = async (email: string, password: string) => {
-    // Mock login - in a real app, this would call an API
+    try {
+      setIsLoading(true)
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      })
+
+      const userData: User = response.data
+      setUser(userData)
+      localStorage.setItem("auth_token", response.data.access_token)
+      localStorage.setItem("user", JSON.stringify(userData))
+    } catch (error) {
+      console.error("Login failed:", error)
+      throw new Error("Invalid credentials")
+    } finally {
+      setIsLoading(false)
+    }
     setIsLoading(true)
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Mock user data based on email
-    let role: User["role"] = "USER"
+    try {
+      const user_roles = await api.post<UserRolesType>("/user-roles/authentication", {
+        email,
+      })
+      let role: User["role"] = "USER"
 
-    if (email.includes("admin")) {
-      role = "ADMIN"
-    } else if (email.includes("editor")) {
-      role = "EDITOR"
-    } else if (email.includes("tournament")) {
-      role = "TOURNAMENT_ADMIN"
+      if (user_roles.data.role === "ADMIN") {
+        role = "ADMIN"
+      } else if (user_roles.data.role === "EDITOR") {
+        role = "EDITOR"
+      } else if (user_roles.data.role === "TOURNAMENT_ADMIN") {
+        role = "TOURNAMENT_ADMIN"
+      }
+
+      const userData: User = {
+        id: user_roles.data.id.toString(),
+        name: user_roles.data.name,
+        email,
+        role,
+      }
+
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+      setIsLoading(false)
+    } catch (error) {
+      throw new Error("Failed to authenticate")
     }
-
-    const userData: User = {
-      id: "1",
-      name: email.split("@")[0],
-      email,
-      role,
-    }
-
-    setUser(userData)
-    localStorage.setItem("user", JSON.stringify(userData))
-    setIsLoading(false)
   }
 
   const logout = () => {
+    localStorage.removeItem("auth_token")
     setUser(null)
-    localStorage.removeItem("user")
+    router.push("/login")
+  }
+
+  // Função para obter o token atual (útil para requisições autenticadas)
+  const getToken = async (): Promise<string | null> => {
+    const token = localStorage.getItem("auth_token")
+    
+    if (!token) return null
+    
+    // Se o token estiver expirado, fazer logout
+    if (isTokenExpired(token)) {
+      logout()
+      return null
+    }
+    
+    return token
   }
 
   return (
@@ -84,6 +163,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoading,
         login,
         logout,
+        getToken,
       }}
     >
       {children}

@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { UserManagement } from "@/components/user-management"
 import { TournamentManagement } from "@/components/tournament-management"
 import { ContentManagement } from "@/components/content-management"
+import api from "@/service/api";
 
 export default function AdminPage() {
   const { user, isAuthenticated } = useAuth()
@@ -16,7 +17,36 @@ export default function AdminPage() {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Check if user is authenticated and has admin role
+    const authenticateUser = async () => {
+      try {
+        const response = await api.post("/user-roles/authentication", {
+          email: user?.email,
+        })
+
+        if (response.status !== 201) {
+          throw new Error("Failed to authenticate")
+        }
+        const data = response.data
+        // if (!data.isAuthenticated || data.role !== "ADMIN") {
+        if (data.role !== "ADMIN") {
+          toast({
+            title: "Acesso negado",
+            description: "Você não tem permissão para acessar o painel de administração.",
+            variant: "destructive",
+          })
+          router.push("/")
+        }
+      } catch (error) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Ocorreu um erro ao verificar a autenticação.",
+          variant: "destructive",
+        })
+        router.push("/login")
+      }
+    }
+
+    authenticateUser()
     if (isAuthenticated) {
       if (user?.role !== "ADMIN") {
         toast({
