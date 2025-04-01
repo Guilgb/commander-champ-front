@@ -23,7 +23,7 @@ const roleRestrictedRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  // Verificar se a rota atual requer autenticação
+
   const isProtectedRoute = protectedRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   )
@@ -32,9 +32,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Obter o token do cookie
   const token = Cookies.get('auth_token') || request.cookies.get('auth_token')?.value
-  // Se não houver token, redirecionar para a página de login
   
   if (!token) {
     const url = new URL('/login', request.url)

@@ -64,9 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
-        // Verificar e decodificar o token
         const payload = await verifyToken(token)
-        // Definir o usuário a partir do payload do token
         setUser({
           id: payload.id,
           name: payload.name,
@@ -74,7 +72,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           role: payload.role as User["role"],
         })
       } catch (error) {
-        // Se o token for inválido, remover do localStorage
         localStorage.removeItem("auth_token")
       } finally {
         setIsLoading(false)
