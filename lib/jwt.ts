@@ -24,15 +24,26 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
   }
 }
 
+// Função para decodificar um token JWT sem verificar sua assinatura
+export function decodeToken(token: string): JWTPayload | null {
+  try {
+    const [, payload] = token.split('.')
+    const decodedPayload = JSON.parse(atob(payload))
+    return decodedPayload as JWTPayload
+  } catch {
+    return null
+  }
+}
+
 // Função para verificar se um token está expirado
 export function isTokenExpired(token: string): boolean {
   try {
     const [, payload] = token.split('.')
     const decodedPayload = JSON.parse(atob(payload))
     const exp = decodedPayload.exp
-    
+
     if (!exp) return true
-    
+
     return Date.now() >= exp * 1000
   } catch {
     return true

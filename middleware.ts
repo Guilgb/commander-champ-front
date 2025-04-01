@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { verifyToken } from '@/lib/jwt'
+import Cookies from "js-cookie";
+
 
 // Rotas que requerem autenticação
 const protectedRoutes = [
@@ -21,9 +23,8 @@ const roleRestrictedRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
   // Verificar se a rota atual requer autenticação
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   )
 
@@ -32,9 +33,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Obter o token do cookie
-  const token = request.cookies.get('auth_token')?.value
-
+  const token = Cookies.get('auth_token') || request.cookies.get('auth_token')?.value
   // Se não houver token, redirecionar para a página de login
+  
   if (!token) {
     const url = new URL('/login', request.url)
     url.searchParams.set('callbackUrl', pathname)
@@ -44,9 +45,8 @@ export async function middleware(request: NextRequest) {
   try {
     // Verificar o token
     const payload = await verifyToken(token)
-
     // Verificar se a rota requer roles específicas
-    const restrictedRoute = roleRestrictedRoutes.find(route => 
+    const restrictedRoute = roleRestrictedRoutes.find(route =>
       pathname === route.path || pathname.startsWith(`${route.path}/`)
     )
 

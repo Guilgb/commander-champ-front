@@ -2,9 +2,11 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { verifyToken, isTokenExpired, type JWTPayload } from "./jwt"
+import { verifyToken, isTokenExpired, decodeToken, type JWTPayload } from "./jwt"
 import api from "@/service/api"
 import { useRouter } from "next/navigation"
+import Cookies from "js-cookie";
+
 
 type User = {
   id: string
@@ -21,6 +23,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   getToken: () => Promise<string | null>
+  register: (name: string, email: string, password: string) => Promise<void>
 }
 
 type UserRolesType = {
@@ -37,6 +40,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   logout: () => { },
   getToken: async () => null,
+  register: async () => { },
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -45,26 +49,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter()
 
   useEffect(() => {
-    // Verificar se o usuário está logado a partir do token JWT
     const checkAuth = async () => {
       const token = localStorage.getItem("auth_token")
-      
+
       if (!token) {
         setIsLoading(false)
         return
       }
-      
-      // Verificar se o token está expirado
+
       if (isTokenExpired(token)) {
         localStorage.removeItem("auth_token")
         setIsLoading(false)
         return
       }
-      
+
       try {
         // Verificar e decodificar o token
         const payload = await verifyToken(token)
-        
         // Definir o usuário a partir do payload do token
         setUser({
           id: payload.id,
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false)
       }
     }
-    
+
     checkAuth()
   }, [])
 
@@ -93,6 +94,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const userData: User = response.data
       setUser(userData)
+
+      Cookies.set("auth_token", response.data.access_token, {
+        expires: 7,
+        secure: true,
+        sameSite: "Strict",
+      });
+
       localStorage.setItem("auth_token", response.data.access_token)
       localStorage.setItem("user", JSON.stringify(userData))
     } catch (error) {
@@ -109,6 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const user_roles = await api.post<UserRolesType>("/user-roles/authentication", {
         email,
       })
+
       let role: User["role"] = "USER"
 
       if (user_roles.data.role === "ADMIN") {
@@ -140,18 +149,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/login")
   }
 
-  // Função para obter o token atual (útil para requisições autenticadas)
+  const register = async (name: string, email: string, password: string) => {
+    setIsLoading(true)
+
+    await api.post<UserRolesType>("/user", {
+      name,
+      email,
+      password,
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    setUser(null)
+    router.push("/login")
+  }
+
   const getToken = async (): Promise<string | null> => {
     const token = localStorage.getItem("auth_token")
-    
+
     if (!token) return null
-    
-    // Se o token estiver expirado, fazer logout
+
     if (isTokenExpired(token)) {
       logout()
       return null
     }
-    
+
     return token
   }
 
@@ -164,6 +185,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         logout,
         getToken,
+        register,
       }}
     >
       {children}

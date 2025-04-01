@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
+import Link from "next/link"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -19,10 +20,8 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
-  // Obter URL de callback, se houver
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const callbackUrl = searchParams.get('/') || '/'
 
-  // Redirecionar se já estiver autenticado
   useEffect(() => {
     if (isAuthenticated) {
       router.push(callbackUrl)
@@ -85,10 +84,16 @@ export default function LoginPage() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Não tem uma conta?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Cadastre-se
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>
