@@ -2,11 +2,10 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { verifyToken, isTokenExpired, type JWTPayload } from "./jwt"
+import { verifyToken, isTokenExpired, decodeToken } from "./jwt"
 import api from "@/service/api"
 import { useRouter } from "next/navigation"
-import Cookies from "js-cookie";
-
+import Cookies from "js-cookie"
 
 type User = {
   id: string
@@ -37,10 +36,10 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => { },
-  logout: () => { },
+  login: async () => {},
+  logout: () => {},
   getToken: async () => null,
-  register: async () => { },
+  register: async () => {},
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -50,7 +49,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("auth_token") ? localStorage.getItem("auth_token") : Cookies.get("auth_token")
+      const token = localStorage.getItem("auth_token")
+        ? localStorage.getItem("auth_token")
+        : Cookies.get("auth_token")
 
       if (!token) {
         setIsLoading(false)
@@ -64,7 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
-        const payload = await verifyToken(token)
+        const payload = await decodeToken(token)
+        if (!payload) throw new Error(`Payload vazio`)
         setUser({
           id: payload.id,
           name: payload.name,
@@ -96,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         expires: 7,
         secure: true,
         sameSite: "Strict",
-      });
+      })
 
       localStorage.setItem("auth_token", response.data.access_token)
       localStorage.setItem("user", JSON.stringify(userData))
@@ -111,12 +113,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     try {
-      const token = localStorage.getItem("auth_token") ? localStorage.getItem("auth_token") : Cookies.get("auth_token")
+      const token = localStorage.getItem("auth_token")
+        ? localStorage.getItem("auth_token")
+        : Cookies.get("auth_token")
       const tokenCookie = verifyToken(token as string)
       console.log(tokenCookie)
-      const user_roles = await api.post<UserRolesType>("/user-roles/authentication", {
-        email,
-      })
+      const user_roles = await api.post<UserRolesType>(
+        "/user-roles/authentication",
+        {
+          email,
+        }
+      )
 
       let role: User["role"] = "USER"
 
@@ -144,6 +151,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = () => {
+    debugger
     localStorage.removeItem("auth_token")
     setUser(null)
     router.push("/login")
@@ -194,4 +202,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 }
 
 export const useAuth = () => useContext(AuthContext)
-
