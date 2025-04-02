@@ -42,7 +42,7 @@ export default function AdminPage() {
           description: "Ocorreu um erro ao verificar a autenticação.",
           variant: "destructive",
         })
-        router.push("/login")
+        router.push("/")
       }
     }
 
