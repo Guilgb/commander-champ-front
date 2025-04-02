@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { verifyToken, isTokenExpired, decodeToken, type JWTPayload } from "./jwt"
+import { verifyToken, isTokenExpired, type JWTPayload } from "./jwt"
 import api from "@/service/api"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie";
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("auth_token")
+      const token = localStorage.getItem("auth_token") ? localStorage.getItem("auth_token") : Cookies.get("auth_token")
 
       if (!token) {
         setIsLoading(false)

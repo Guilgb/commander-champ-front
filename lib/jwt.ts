@@ -1,4 +1,4 @@
-import { jwtVerify, SignJWT } from 'jose'
+import { jwtVerify } from 'jose'
 
 // Chave secreta para assinar os tokens JWT (em produção, use variáveis de ambiente)
 const JWT_SECRET = new TextEncoder().encode(
@@ -24,7 +24,6 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
   }
 }
 
-// Função para decodificar um token JWT sem verificar sua assinatura
 export function decodeToken(token: string): JWTPayload | null {
   try {
     const [, payload] = token.split('.')

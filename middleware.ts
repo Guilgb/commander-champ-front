@@ -41,19 +41,15 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Verificar o token
     const payload = await verifyToken(token)
-    // Verificar se a rota requer roles específicas
     const restrictedRoute = roleRestrictedRoutes.find(route =>
       pathname === route.path || pathname.startsWith(`${route.path}/`)
     )
 
     if (restrictedRoute && !restrictedRoute.roles.includes(payload.role)) {
-      // Usuário não tem permissão para acessar esta rota
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // Token válido e usuário tem permissão, continuar
     return NextResponse.next()
   } catch (error) {
     // Token inválido, redirecionar para login
