@@ -111,6 +111,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     try {
+      const token = localStorage.getItem("auth_token") ? localStorage.getItem("auth_token") : Cookies.get("auth_token")
+      const tokenCookie = verifyToken(token as string)
+      console.log(tokenCookie)
       const user_roles = await api.post<UserRolesType>("/user-roles/authentication", {
         email,
       })
