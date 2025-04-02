@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev-debug": "cross-env NODE_OPTIONS='--inspect' next dev -p 4000",
+    "dev:debug": "cross-env NODE_OPTIONS='--inspect' next dev -p 4000",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

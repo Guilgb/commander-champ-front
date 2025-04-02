@@ -6,6 +6,7 @@ import { verifyToken, isTokenExpired, decodeToken } from "./jwt"
 import api from "@/service/api"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie"
+import { th } from "date-fns/locale"
 
 type User = {
   id: string
@@ -36,10 +37,10 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
-  logout: () => {},
+  login: async () => { },
+  logout: () => { },
   getToken: async () => null,
-  register: async () => {},
+  register: async () => { },
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -65,8 +66,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
-        const payload = await decodeToken(token)
-        if (!payload) throw new Error(`Payload vazio`)
+        let payload = await decodeToken(token)
+        if (!payload) {
+          const userCookies = Cookies.get("auth_token")
+          payload = await decodeToken(userCookies as string)
+        }
+
+        if (!payload) {
+          throw new Error("Invalid token")
+        }
+
         setUser({
           id: payload.id,
           name: payload.name,
@@ -100,6 +109,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sameSite: "Strict",
       })
 
+      Cookies.set("user", JSON.stringify(userData),
+        {
+          expires: 7,
+          secure: true,
+          sameSite: "Strict",
+        })
+
       localStorage.setItem("auth_token", response.data.access_token)
       localStorage.setItem("user", JSON.stringify(userData))
     } catch (error) {
@@ -116,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem("auth_token")
         ? localStorage.getItem("auth_token")
         : Cookies.get("auth_token")
-      const tokenCookie = verifyToken(token as string)
+      const tokenCookie = decodeToken(token as string)
       console.log(tokenCookie)
       const user_roles = await api.post<UserRolesType>(
         "/user-roles/authentication",
@@ -151,7 +167,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = () => {
-    debugger
     localStorage.removeItem("auth_token")
     setUser(null)
     router.push("/login")

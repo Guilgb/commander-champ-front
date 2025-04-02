@@ -4,15 +4,6 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
@@ -45,7 +36,7 @@ type User = {
   name: string
   email: string
   role: string
-  createdAt: string
+  created_at: string
 }
 
 const roleLabels = {
@@ -76,6 +67,10 @@ export function UserManagement() {
       });
   }, []);
 
+  useEffect(() => {
+    setFilteredUsers(users);
+  }, [users]);
+
   const handleRoleChange = (userId: number, role: string) => {
     setUsers(users?.map((user) => (user.id === userId ? { ...user, role } : user)))
   }
@@ -96,9 +91,9 @@ export function UserManagement() {
 
   const handleSave = () => {
     if (editedUser) {
-      setUsers(users?.map((user) => 
-        user.id === editedUser.id 
-          ? { ...editedUser, created_at: user.created_at } 
+      setUsers(users?.map((user) =>
+        user.id === editedUser.id
+          ? { ...editedUser, created_at: user.created_at }
           : user
       ))
       toast({
@@ -216,7 +211,7 @@ export function UserManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        // onClick={() => handleEdit(user)}
+                        onClick={() => handleEdit({ ...user, created_at: user.created_at })}
                         disabled={editingUserId !== null}
                       >
                         <Edit2 className="h-4 w-4 mr-1" />
