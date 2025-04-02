@@ -51,9 +51,9 @@ export function UserManagement() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false)
   const [filteredUsers, setFilteredUsers] = useState<UserList[] | undefined>()
   const [searchTerm, setSearchTerm] = useState("")
-  const [editingUserId, setEditingUserId] = useState<any>(null)
+  const [editingUserEmail, setEditingUserEmail] = useState<any>(null)
   const [editedUser, setEditedUser] = useState<User | null>(null)
-  const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
+  const [deleteUserEmail, setDeleteUserEmail] = useState<string | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -75,24 +75,15 @@ export function UserManagement() {
     setUsers(users?.map((user) => (user.id === userId ? { ...user, role } : user)))
   }
 
-  const handleAddUser = () => {
-    const id = ((users?.length ?? 0) + 1).toString()
-    const createdAt = new Date().toLocaleDateString()
-
-    // setUsers([...(users ?? []), { ...newUser, id: Number(id), created_at: createdAt }])
-    // setNewUser({ name: "", email: "", role: "USER" })
-    setIsAddUserOpen(false)
-  }
-
   const handleEdit = (user: User) => {
-    setEditingUserId(user.id)
+    setEditingUserEmail(user.email)
     setEditedUser({ ...user })
   }
 
   const handleSave = () => {
     if (editedUser) {
       setUsers(users?.map((user) =>
-        user.id === editedUser.id
+        user.email === editedUser.email
           ? { ...editedUser, created_at: user.created_at }
           : user
       ))
@@ -100,34 +91,56 @@ export function UserManagement() {
         title: "Usuário atualizado",
         description: `As informações de ${editedUser.name} foram atualizadas com sucesso.`,
       })
-      setEditingUserId(null)
+      setEditingUserEmail(null)
       setEditedUser(null)
     }
   }
 
   const handleCancel = () => {
-    setEditingUserId(null)
+    setEditingUserEmail(null)
     setEditedUser(null)
   }
 
-  const handleDelete = (userId: number) => {
-    setDeleteUserId(userId)
+  const handleDelete = async (email: string) => {
+    setDeleteUserEmail(email)
+    try {
+      const response = await api.delete(`/user`, {
+        data: { email },
+      })
+
+      if (response.status !== 200) {
+        throw new Error("Failed to delete user")
+      }
+
+      setUsers((prevUsers) => prevUsers?.filter((user) => user.email !== email))
+      toast({
+        title: "Usuário removido",
+        description: "O usuário foi removido com sucesso.",
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao tentar excluir o usuário.",
+        variant: "destructive",
+      })
+    }
   }
 
   const confirmDelete = () => {
-    if (deleteUserId) {
-      const userToDelete = users?.find((user) => user.id === deleteUserId)
-      setUsers(users?.filter((user) => user.id !== deleteUserId))
+    if (deleteUserEmail) {
+      const userToDelete = users?.find((user) => user.email === deleteUserEmail)
+      setUsers(users?.filter((user) => user.email !== deleteUserEmail))
       toast({
         title: "Usuário removido",
         description: `${userToDelete?.name} foi removido com sucesso.`,
       })
-      setDeleteUserId(null)
+      setDeleteUserEmail(null)
     }
   }
 
   const cancelDelete = () => {
-    setDeleteUserId(null)
+    setDeleteUserEmail(null)
   }
 
   return (
@@ -156,7 +169,7 @@ export function UserManagement() {
           {filteredUsers?.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">
-                {editingUserId === user.id.toString() ? (
+                {editingUserEmail === user.id.toString() ? (
                   <Input
                     value={editedUser?.name || ""}
                     onChange={(e) => setEditedUser({ ...editedUser!, name: e.target.value })}
@@ -166,7 +179,7 @@ export function UserManagement() {
                 )}
               </TableCell>
               <TableCell>
-                {editingUserId === user.id.toString() ? (
+                {editingUserEmail === user.id.toString() ? (
                   <Input
                     value={editedUser?.email || ""}
                     onChange={(e) => setEditedUser({ ...editedUser!, email: e.target.value })}
@@ -177,9 +190,9 @@ export function UserManagement() {
               </TableCell>
               <TableCell>
                 <Select
-                  value={editingUserId === user.id ? editedUser?.role || user.role : user.role}
+                  value={editingUserEmail === user.id ? editedUser?.role || user.role : user.role}
                   onValueChange={(value) => handleRoleChange(user.id, value)}
-                  disabled={editingUserId !== user.id.toString() && editingUserId !== null}
+                  disabled={editingUserEmail !== user.id.toString() && editingUserEmail !== null}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Selecionar função" />
@@ -195,7 +208,7 @@ export function UserManagement() {
               <TableCell>{user.created_at}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  {editingUserId === user.id.toString() ? (
+                  {editingUserEmail === user.id.toString() ? (
                     <>
                       <Button variant="outline" size="sm" onClick={handleSave}>
                         <Save className="h-4 w-4 mr-1" />
@@ -212,7 +225,7 @@ export function UserManagement() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit({ ...user, created_at: user.created_at })}
-                        disabled={editingUserId !== null}
+                        disabled={editingUserEmail !== null}
                       >
                         <Edit2 className="h-4 w-4 mr-1" />
                         Editar
@@ -220,8 +233,8 @@ export function UserManagement() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(user.id)}
-                        disabled={editingUserId !== null}
+                        onClick={() => handleDelete(user.email)}
+                        disabled={editingUserEmail !== null}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Deletar
@@ -235,7 +248,7 @@ export function UserManagement() {
         </TableBody>
       </Table>
 
-      <AlertDialog open={deleteUserId !== null} onOpenChange={() => setDeleteUserId(null)}>
+      <AlertDialog open={deleteUserEmail !== null} onOpenChange={() => setDeleteUserEmail(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
