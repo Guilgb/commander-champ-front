@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import api from "@/service/api"
 
 // Mock user data
 const mockUsers = [
@@ -24,36 +25,16 @@ const mockUsers = [
     email: "joao@example.com",
     role: "USER",
     createdAt: "01/01/2023",
-  },
-  {
-    id: "2",
-    name: "Maria Souza",
-    email: "maria@example.com",
-    role: "EDITOR",
-    createdAt: "15/01/2023",
-  },
-  {
-    id: "3",
-    name: "Pedro Alves",
-    email: "pedro@example.com",
-    role: "TOURNAMENT_ADMIN",
-    createdAt: "20/02/2023",
-  },
-  {
-    id: "4",
-    name: "Ana Costa",
-    email: "ana@example.com",
-    role: "USER",
-    createdAt: "05/03/2023",
-  },
-  {
-    id: "5",
-    name: "Carlos Oliveira",
-    email: "carlos@example.com",
-    role: "ADMIN",
-    createdAt: "10/03/2023",
-  },
+  }
 ]
+
+export interface UserList {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
 
 const roleLabels = {
   USER: "Usuário",
@@ -63,7 +44,7 @@ const roleLabels = {
 }
 
 export function UserManagement() {
-  const [users, setUsers] = useState(mockUsers)
+  const [users, setUsers] = useState<UserList[] | undefined>()
   const [isAddUserOpen, setIsAddUserOpen] = useState(false)
   const [newUser, setNewUser] = useState({
     name: "",
@@ -71,16 +52,27 @@ export function UserManagement() {
     role: "USER",
   })
 
-  const handleRoleChange = (userId: string, role: string) => {
-    setUsers(users.map((user) => (user.id === userId ? { ...user, role } : user)))
+  useEffect(() => {
+    api
+      .get("/user/list")
+      .then((res) => {
+        setUsers(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
+  const handleRoleChange = (userId: number, role: string) => {
+    setUsers(users?.map((user) => (user.id === userId ? { ...user, role } : user)))
   }
 
   const handleAddUser = () => {
-    const id = (users.length + 1).toString()
+    const id = ((users?.length ?? 0) + 1).toString()
     const createdAt = new Date().toLocaleDateString()
 
-    setUsers([...users, { ...newUser, id, createdAt }])
-    setNewUser({ name: "", email: "", role: "USER" })
+    setUsers([...(users ?? []), { ...newUser, id: Number(id), created_at: createdAt }])
+    // setNewUser({ name: "", email: "", role: "USER" })
     setIsAddUserOpen(false)
   }
 
@@ -150,7 +142,7 @@ export function UserManagement() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
+          {users?.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
@@ -167,10 +159,10 @@ export function UserManagement() {
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell>{user.createdAt}</TableCell>
+              <TableCell>{user.created_at}</TableCell>
               <TableCell>
                 <Button variant="outline" size="sm">
-                  Editar
+                  Salvar
                 </Button>
               </TableCell>
             </TableRow>

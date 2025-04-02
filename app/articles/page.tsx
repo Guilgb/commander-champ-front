@@ -14,28 +14,6 @@ import api from '@/service/api'
 import { Articles } from "./types"
 import { useEffect } from "react"
 
-// const articles = [
-//   {
-//     id: "1",
-//     title: "Top 10 Comandantes Abaixo de R$10",
-//     excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
-//     content:
-//       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-//     date: "10/04/2023",
-//     readTime: "8 min",
-//     views: 1250,
-//     comments: 24,
-//     featured: true,
-//     coverImage: "/placeholder.svg?height=400&width=800",
-//     author: {
-//       name: "João Silva",
-//       avatar: "/placeholder.svg?height=40&width=40",
-//     },
-//     tags: ["budget", "comandantes", "iniciantes"],
-//   },
-// ]
-
-// Categorias de artigos
 const categories = [
   { id: "all", name: "Todos" },
   { id: "strategy", name: "Estratégia" },
@@ -51,7 +29,6 @@ export default function ArticlesPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
-    // Buscar artigos da API
     api
       .get("/articles")
       .then((res) => {
