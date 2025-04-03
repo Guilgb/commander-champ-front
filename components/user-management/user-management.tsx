@@ -5,50 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import api from "@/service/api"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@radix-ui/react-alert-dialog"
 import { Search, Save, X, Edit2, Trash2 } from "lucide-react"
-import { AlertDialogHeader, AlertDialogFooter } from "./ui/alert-dialog"
-
-// Mock user data
-const mockUsers = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@example.com",
-    role: "USER",
-    createdAt: "01/01/2023",
-  }
-]
-
-export interface UserList {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
-
-type User = {
-  id: number
-  name: string
-  email: string
-  role: string
-  created_at: string
-}
-
-const roleLabels = {
-  USER: "Usuário",
-  EDITOR: "Editor",
-  TOURNAMENT_ADMIN: "Admin de Torneios",
-  ADMIN: "Administrador",
-}
+import { AlertDialogHeader, AlertDialogFooter } from "../ui/alert-dialog"
+import { User, UserList } from "./types"
 
 export function UserManagement() {
   const [users, setUsers] = useState<UserList[] | undefined>()
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false)
   const [filteredUsers, setFilteredUsers] = useState<UserList[] | undefined>()
   const [searchTerm, setSearchTerm] = useState("")
   const [editingUserEmail, setEditingUserEmail] = useState<any>(null)
@@ -71,22 +36,71 @@ export function UserManagement() {
     setFilteredUsers(users);
   }, [users]);
 
-  const handleRoleChange = (userId: number, role: string) => {
-    setUsers(users?.map((user) => (user.id === userId ? { ...user, role } : user)))
+  const handleRoleChange = (userEmail: string, role: string) => {
+    if (editingUserEmail === userEmail && editedUser) {
+      setEditedUser({ ...editedUser, role })
+    } else {
+      setUsers(users?.map((user) => (user.email === userEmail ? { ...user, role } : user)) || [])
+    }
   }
 
   const handleEdit = (user: User) => {
+    console.log(user)
     setEditingUserEmail(user.email)
     setEditedUser({ ...user })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editedUser) {
       setUsers(users?.map((user) =>
         user.email === editedUser.email
           ? { ...editedUser, created_at: user.created_at }
           : user
       ))
+
+      try {
+        const response = await api.post(`/user-roles/user`, {
+          data: { user_id: editedUser?.id },
+        })
+
+        const { role_name } = response.data
+
+        if (response.status !== 201) {
+          throw new Error("Failed to fetch user role")
+        }
+
+        console.log({
+          user_id: editedUser?.id,
+          role_name: role_name,
+          new_role_name: editedUser?.role,
+        })
+
+        const update = await api.put(`/user-roles/update`, {
+          data: {
+            user_id: editedUser.id,
+            role_name: role_name,
+            new_role_name: editedUser.role,
+          },
+        })
+
+        if (update.status !== 200) {
+          throw new Error("Failed to update user role")
+        }
+        setUsers(users?.map((user) =>
+          user.email === editedUser.email
+            ? { ...editedUser, created_at: user.created_at }
+            : user
+        ))
+
+      } catch (error) {
+        console.error(error)
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao tentar atualizar o usuário.",
+          variant: "destructive",
+        })
+
+      }
       toast({
         title: "Usuário atualizado",
         description: `As informações de ${editedUser.name} foram atualizadas com sucesso.`,
@@ -103,33 +117,28 @@ export function UserManagement() {
 
   const handleDelete = async (email: string) => {
     setDeleteUserEmail(email)
-    try {
-      const response = await api.delete(`/user`, {
-        data: { email },
-      })
-
-      if (response.status !== 200) {
-        throw new Error("Failed to delete user")
-      }
-
-      setUsers((prevUsers) => prevUsers?.filter((user) => user.email !== email))
-      toast({
-        title: "Usuário removido",
-        description: "O usuário foi removido com sucesso.",
-      })
-    } catch (error) {
-      console.error(error)
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao tentar excluir o usuário.",
-        variant: "destructive",
-      })
-    }
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteUserEmail) {
       const userToDelete = users?.find((user) => user.email === deleteUserEmail)
+      try {
+        const response = await api.delete(`/user`, {
+          data: { email: userToDelete?.email },
+        })
+
+        if (response.status !== 200) {
+          throw new Error("Failed to delete user")
+        }
+
+      } catch (error) {
+        console.error(error)
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao tentar excluir o usuário.",
+          variant: "destructive",
+        })
+      }
       setUsers(users?.filter((user) => user.email !== deleteUserEmail))
       toast({
         title: "Usuário removido",
@@ -191,8 +200,8 @@ export function UserManagement() {
               <TableCell>
                 <Select
                   value={editingUserEmail === user.id ? editedUser?.role || user.role : user.role}
-                  onValueChange={(value) => handleRoleChange(user.id, value)}
-                  disabled={editingUserEmail !== user.id.toString() && editingUserEmail !== null}
+                  onValueChange={(value) => handleRoleChange(user.email, value)}
+                  disabled={editingUserEmail !== user.email && editingUserEmail !== null}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Selecionar função" />
@@ -208,7 +217,7 @@ export function UserManagement() {
               <TableCell>{user.created_at}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  {editingUserEmail === user.id.toString() ? (
+                  {editingUserEmail === user.email ? (
                     <>
                       <Button variant="outline" size="sm" onClick={handleSave}>
                         <Save className="h-4 w-4 mr-1" />
@@ -224,7 +233,7 @@ export function UserManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEdit({ ...user, created_at: user.created_at })}
+                        onClick={() => handleEdit(user)}
                         disabled={editingUserEmail !== null}
                       >
                         <Edit2 className="h-4 w-4 mr-1" />

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
-import { UserManagement } from "@/components/user-management"
+import { UserManagement } from "@/components/user-management/user-management"
 import { TournamentManagement } from "@/components/tournament-management"
 import { ContentManagement } from "@/components/content-management"
 import api from "@/service/api";
