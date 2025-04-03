@@ -69,12 +69,6 @@ export function UserManagement() {
           throw new Error("Failed to fetch user role")
         }
 
-        console.log({
-          user_id: editedUser?.id,
-          role_name: role_name,
-          new_role_name: editedUser?.role,
-        })
-
         const update = await api.put(`/user-roles/update`, {
           data: {
             user_id: editedUser.id,
