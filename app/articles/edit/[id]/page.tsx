@@ -13,78 +13,12 @@ import { useToast } from "@/components/ui/use-toast"
 import { MarkdownEditor } from "@/components/markdown-editor"
 import { HelpCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import api from "@/service/api"
 
-// Mock articles data - same as in the articles page
-const articles = [
-  {
-    id: "1",
-    title: "Top 10 Comandantes Abaixo de R$10",
-    excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
-    content: `
-# Top 10 Comandantes Abaixo de R$10
+const articlesApi = await api.get(`/articles`)
+console.log(articlesApi.data)
+const articles = articlesApi.data
 
-Construir um deck de Commander competitivo não precisa custar uma fortuna. Neste artigo, vamos explorar 10 comandantes que custam menos de R$10 e ainda assim podem liderar decks poderosos no formato Commander 500.
-
-## 1. Zada, Hedron Grinder @{Zada, Hedron Grinder}
-
-Este goblin de 3/3 por apenas 4 manas tem uma habilidade poderosa: quando você conjura uma mágica instantânea ou feitiço que tem como alvo apenas Zada, copie essa mágica para cada outra criatura que você controla. Cada uma dessas cópias tem como alvo a criatura correspondente.
-
-Com mágicas baratas como @{Expedite}, @{Crimson Wisps} e @{Titan's Strength}, você pode transformar um exército de tokens em uma ameaça letal em um único turno.
-
-## 2. Syr Konrad, the Grim @{Syr Konrad, the Grim}
-
-Este cavaleiro negro causa 1 ponto de dano a cada oponente sempre que uma criatura morre ou um card de criatura sai do seu cemitério. Combine-o com efeitos de moer cards e sacrifício para causar danos massivos.
-
-## 3. Tatyova, Benthic Druid @{Tatyova, Benthic Druid}
-
-Esta druida permite que você compre um card e ganhe 1 ponto de vida sempre que um terreno entra em jogo sob seu controle. Em um deck focado em jogar terrenos adicionais, ela proporciona vantagem de card constante.
-
-## 4. Feather, the Redeemed @{Feather, the Redeemed}
-
-Feather permite que você recupere para sua mão mágicas instantâneas e feitiços que têm como alvo uma criatura que você controla. Isso cria um motor de vantagem de card incrível com mágicas baratas.
-
-## 5. Talrand, Sky Summoner @{Talrand, Sky Summoner}
-
-Este mago merfolk cria um token de Drake 2/2 voador sempre que você conjura uma mágica instantânea ou feitiço. Um deck cheio de contramágicas e remoções baratas pode rapidamente construir um exército aéreo.
-
-## Conclusão
-
-Estes comandantes provam que você não precisa gastar muito para ter um deck competitivo no Commander 500. Com a estratégia certa e cards de suporte bem escolhidos, estes líderes baratos podem proporcionar jogos divertidos e vitórias consistentes.
-    `,
-    date: "10/04/2023",
-    author: {
-      name: "João Silva",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["budget", "comandantes", "iniciantes"],
-  },
-  {
-    id: "2",
-    title: "Guia de Construção para Iniciantes",
-    excerpt: "Aprenda a construir seu primeiro deck de Commander 500 com este guia passo a passo.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "05/04/2023",
-    author: {
-      name: "Maria Souza",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["guia", "iniciantes", "construção"],
-  },
-  {
-    id: "3",
-    title: "Análise do Meta Pós-Banimentos",
-    excerpt: "Como o meta evoluiu após os últimos banimentos e quais estratégias estão em alta.",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl eu nisl.",
-    date: "01/04/2023",
-    author: {
-      name: "Carlos Oliveira",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    tags: ["meta", "análise", "banimentos"],
-  },
-]
 
 export default function EditArticlePage() {
   const params = useParams()
@@ -102,7 +36,6 @@ export default function EditArticlePage() {
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    // Check if user is authenticated and has editor or admin role
     if (isAuthenticated) {
       if (user?.role !== "EDITOR" && user?.role !== "ADMIN") {
         toast({
@@ -121,9 +54,8 @@ export default function EditArticlePage() {
       router.push("/login")
     }
 
-    // In a real app, fetch article data based on params.id
     setIsLoading(true)
-    const foundArticle = articles.find((a) => a.id === params.id)
+    const foundArticle = articles.find((a: { id: string | string[] | undefined }) => a.id === params.id)
 
     if (foundArticle) {
       setArticle(foundArticle)

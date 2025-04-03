@@ -6,7 +6,7 @@ import Link from "next/link"
 const articles = [
   {
     id: "1",
-    title: "Top 10 Comandantes Abaixo de R$10",
+    title: "Top 11 Comandantes Abaixo de R$11",
     excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
     date: "10/04/2023",
     author: {

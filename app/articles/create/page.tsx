@@ -15,6 +15,7 @@ import { HelpCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import api from "@/service/api"
 
 export default function CreateArticlePage() {
   const { user, isAuthenticated } = useAuth()
@@ -33,7 +34,6 @@ export default function CreateArticlePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    // Check if user is authenticated and has editor or admin role
     if (isAuthenticated) {
       if (user?.role !== "EDITOR" && user?.role !== "ADMIN") {
         toast({
@@ -83,8 +83,42 @@ export default function CreateArticlePage() {
       views: 1,
       comments: 0,
     }
+    console.log("Dados do artigo:", articleData)
+    try {
+      const {
+        content,
+        title,
+        topic_id,
+        excerpt,
+        read_time,
+        featured,
+        cover_image,
+        tags,
+      } = formData
 
-    // Simulate API call
+      const response = await api.post(`/articles`, {
+        content,
+        title,
+        user_id: user?.id,
+        excerpt,
+        topic_id,
+        read_time,
+        views: 0,
+        comments: 0,
+        featured,
+        cover_image,
+        tags
+      })
+
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao tentar criar o artigo.",
+        variant: "destructive",
+      })
+
+    }
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     console.log("Enviando dados do artigo:", articleData)

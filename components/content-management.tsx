@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 const mockArticles = [
   {
     id: "1",
-    title: "Top 10 Comandantes Abaixo de R$10",
+    title: "Top 1 Comandantes Abaixo de R$1",
     author: "João Silva",
     date: "10/04/2023",
     status: "published",

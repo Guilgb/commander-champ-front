@@ -29,9 +29,9 @@ interface UserArticlesProps {
 const mockUserArticles = [
   {
     id: "1",
-    title: "Top 10 Comandantes Abaixo de R$10",
+    title: "Top 1 Comandantes Abaixo de R$11",
     excerpt: "Descubra comandantes poderosos que não vão pesar no seu bolso e ainda são competitivos.",
-    date: "10/04/2023",
+    date: "10/04/2025",
     readTime: "8 min",
     views: 1250,
     comments: 24,
