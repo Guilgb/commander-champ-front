@@ -21,6 +21,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import type { DateRange } from "react-day-picker"
+import api from "@/service/api"
 
 // Atualizar o componente RegisterTournamentPage
 export default function RegisterTournamentPage() {
@@ -40,7 +41,6 @@ export default function RegisterTournamentPage() {
   })
 
   useEffect(() => {
-    // Check if user is authenticated and has tournament admin or admin role
     if (isAuthenticated) {
       if (user?.role !== "TOURNAMENT_ADMIN" && user?.role !== "ADMIN") {
         toast({
@@ -74,99 +74,52 @@ export default function RegisterTournamentPage() {
 
     setIsLoading(true)
 
-    // Simulate API call to fetch tournament data
+    // const response = await api.post(`/tournaments/`, {
+    //   name: tournamentName,
+    //   type: tournamentType,
+    //   start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+    //   end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+    //   link: tournamentLink,
+    //   user_id: Number(user?.id),
+    //   online: tournamentType,
+    //   format: "EDH",
+    // })
+    // if (response.status !== 201) {
+    //   toast({
+    //     title: "Erro ao carregar torneio",
+    //     description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+    //     variant: "destructive",
+    //   })
+    //   setIsLoading(false)
+    //   return
+    // }
+
+    // if(response.data.id) {
+    //   console.log("Tournament ID:", response.data.id)
+    //   const saveDecks = await api.post(`/decks/save`, {
+    //     url: tournamentLink,
+    //     tournament_id: response.data.id,
+    //   })
+    //   if (saveDecks.status !== 201) {
+    //     toast({
+    //       title: "Erro ao carregar torneio",
+    //       description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+    //       variant: "destructive",
+    //     })
+    //     setIsLoading(false)
+    //     return
+    //   }
+    // }
+
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Mock tournament data
-    const mockTournamentData = {
-      name: tournamentName || "Commander 500 - Torneio Mensal",
-      date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : "2023-04-15",
-      location: tournamentType === "presencial" ? "Loja Mágica - São Paulo" : "Online - Discord",
-      players: [
-        {
-          id: "p1",
-          name: "João Silva",
-          commander: "Gishath, Sun's Avatar",
-          colors: "RGW",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p2",
-          name: "Maria Souza",
-          commander: "Atraxa, Praetors' Voice",
-          colors: "WUBG",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p3",
-          name: "Pedro Alves",
-          commander: "Yuriko, the Tiger's Shadow",
-          colors: "UB",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p4",
-          name: "Ana Costa",
-          commander: "Muldrotha, the Gravetide",
-          colors: "BUG",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p5",
-          name: "Lucas Mendes",
-          commander: "Krenko, Mob Boss",
-          colors: "R",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p6",
-          name: "Juliana Santos",
-          commander: "Talrand, Sky Summoner",
-          colors: "U",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p7",
-          name: "Rafael Oliveira",
-          commander: "Kaalia of the Vast",
-          colors: "RWB",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-        {
-          id: "p8",
-          name: "Carlos Oliveira",
-          commander: "Omnath, Locus of Creation",
-          colors: "RGWU",
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          isWinner: false,
-        },
-      ],
-    }
+    const tournamentData = await api.post(`/tournaments/load-decks`, {
+      tournament_id: 31,
+    })
 
-    setTournamentData(mockTournamentData)
+    console.log(tournamentData.data)
+    setTournamentData(tournamentData.data)
     setIsLoading(false)
 
     toast({
@@ -176,6 +129,7 @@ export default function RegisterTournamentPage() {
   }
 
   const handleSaveTournament = async () => {
+    console.log(tournamentData)
     setIsLoading(true)
 
     // Validate that all players have results
