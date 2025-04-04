@@ -5,34 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@radix-ui/react-alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import api from "@/service/api"
+import { ListArticlesUsersResponse } from "./types"
+import Link from "next/link"
+import { useToast } from "@/components/ui/use-toast"
+import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
+
 
 // Mock articles data
-const mockArticles = [
-  {
-    id: "1",
-    title: "Top 1 Comandantes Abaixo de R$1",
-    author: "João Silva",
-    date: "10/04/2023",
-    status: "published",
-  },
-  {
-    id: "2",
-    title: "Guia de Construção para Iniciantes",
-    author: "Maria Souza",
-    date: "05/04/2023",
-    status: "published",
-  },
-  {
-    id: "3",
-    title: "Análise do Meta Pós-Banimentos",
-    author: "Carlos Oliveira",
-    date: "01/04/2023",
-    status: "published",
-  },
-]
+const articlesApi = await api.get(`/articles/users`)
+const mockArticles: ListArticlesUsersResponse[] = articlesApi.data
 
 // Mock forum topics data
 const mockTopics = [
@@ -89,6 +75,9 @@ export function ContentManagement() {
     name: "",
     reason: "",
   })
+  const [deleteArticle, setDeleteArticle] = useState<string | null>(null)
+  const { toast } = useToast()
+
 
   const handleAddBannedCard = () => {
     const id = (bannedCards.length + 1).toString()
@@ -96,6 +85,43 @@ export function ContentManagement() {
 
     setBannedCards([...bannedCards, { ...newBannedCard, id, date }])
     setNewBannedCard({ name: "", reason: "" })
+  }
+
+  const handleDelete = async (id: string) => {
+    setDeleteArticle(id)
+  }
+
+  const cancelDelete = () => {
+    setDeleteArticle(null)
+  }
+
+  const confirmDelete = async () => {
+    if (deleteArticle) {
+      const articleToDelete = articles?.find((a) => a.id === deleteArticle)
+      try {
+        const response = await api.delete(`/articles`, {
+          data: { id: articleToDelete?.id },
+        })
+
+        if (response.status !== 200) {
+          throw new Error("Failed to delete article")
+        }
+
+      } catch (error) {
+        console.error(error)
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao tentar excluir o usuário.",
+          variant: "destructive",
+        })
+      }
+      setArticles(articles?.filter((a) => a.id !== deleteArticle))
+      toast({
+        title: "Artigo removido",
+        description: `${deleteArticle} foi removido com sucesso.`,
+      })
+      setDeleteArticle(null)
+    }
   }
 
   return (
@@ -131,9 +157,15 @@ export function ContentManagement() {
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm">
-                      Editar
+                      <Link href={`/articles/edit/${article.id}`}>
+                        Editar
+                      </Link>
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(article.id)}
+                    >
                       Excluir
                     </Button>
                   </div>
@@ -232,7 +264,22 @@ export function ContentManagement() {
           </TableBody>
         </Table>
       </TabsContent>
+      <AlertDialog open={deleteArticle !== null} onOpenChange={() => setDeleteArticle(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Tabs>
   )
 }
-

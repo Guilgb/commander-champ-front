@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import { UserManagement } from "@/components/user-management/user-management"
 import { TournamentManagement } from "@/components/tournament-management"
-import { ContentManagement } from "@/components/content-management"
+import { ContentManagement } from "@/components/content-management/content-management"
 import api from "@/service/api";
 
 export default function AdminPage() {

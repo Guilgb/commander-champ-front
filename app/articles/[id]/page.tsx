@@ -12,7 +12,6 @@ import Link from "next/link"
 import { ArticleComments } from "@/components/article-comments"
 import api from "@/service/api"
 
-// Mock articles data - same as in the articles page
 const articlesApi = await api.get(`/articles`)
 console.log(articlesApi.data)
 const articles = articlesApi.data
