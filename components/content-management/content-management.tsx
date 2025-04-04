@@ -134,7 +134,11 @@ export function ContentManagement() {
 
       <TabsContent value="articles" className="space-y-4">
         <div className="flex justify-end">
-          <Button>Criar Artigo</Button>
+          <Button>
+            <Link href={`/articles/create`}>
+              Criar Artigo
+            </Link>
+          </Button>
         </div>
 
         <Table>

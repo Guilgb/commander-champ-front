@@ -21,11 +21,11 @@ export function Navbar() {
       label: "Início",
       active: pathname === "/",
     },
-    {
-      href: "/forum",
-      label: "Fórum",
-      active: pathname === "/forum",
-    },
+    // {
+    //   href: "/forum",
+    //   label: "Fórum",
+    //   active: pathname === "/forum",
+    // },
     {
       href: "/articles",
       label: "Artigos",
