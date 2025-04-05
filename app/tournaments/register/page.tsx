@@ -117,8 +117,8 @@ export default function RegisterTournamentPage() {
     const tournamentData = await api.post(`/tournaments/load-decks`, {
       tournament_id: 31,
     })
+    console.log(tournamentData)
 
-    console.log(tournamentData.data)
     setTournamentData(tournamentData.data)
     setIsLoading(false)
 
@@ -129,7 +129,31 @@ export default function RegisterTournamentPage() {
   }
 
   const handleSaveTournament = async () => {
-    console.log(tournamentData)
+    try {
+      const tournamentSave = await api.put(`/tournaments/update-all-decks`, {
+        id: tournamentData.id,
+        format: tournamentData.format,
+        location: tournamentData.location,
+        name: tournamentData.name,
+        players: tournamentData.players,
+        start_date: tournamentData.start_date,
+      })
+
+      if (tournamentSave.status !== 201) {
+        toast({
+          title: "Erro ao salvar torneio",
+          description: "Não foi possível salvar os dados do torneio. Tente novamente.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+    } catch (error) {
+      toast({
+        title: "Torneio não salvo",
+        description: "Os dados do torneio não foram carregados com sucesso.",
+      })
+    }
     setIsLoading(true)
 
     // Validate that all players have results

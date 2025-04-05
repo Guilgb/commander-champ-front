@@ -8,6 +8,7 @@ interface Player {
   id: string
   name: string
   commander: string
+  partner?: string
   colors: string
   wins: number
   losses: number
@@ -49,6 +50,7 @@ export function TournamentResultsTable({ players, onUpdateResults }: TournamentR
         <TableRow>
           <TableHead>Jogador</TableHead>
           <TableHead>Comandante</TableHead>
+          <TableHead>Parceiro</TableHead>
           <TableHead>Cores</TableHead>
           <TableHead>Vitórias</TableHead>
           <TableHead>Derrotas</TableHead>
@@ -61,6 +63,7 @@ export function TournamentResultsTable({ players, onUpdateResults }: TournamentR
           <TableRow key={player.id}>
             <TableCell className="font-medium">{player.name}</TableCell>
             <TableCell>{player.commander}</TableCell>
+            <TableCell>{player.partner || "-"}</TableCell>
             <TableCell>{player.colors}</TableCell>
             <TableCell>
               <Input
