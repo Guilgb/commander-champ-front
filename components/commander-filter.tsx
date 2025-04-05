@@ -16,20 +16,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from "@/components/ui/badge"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
+import api from "@/service/api"
 
-// Mock data para torneios
-const tournaments = [
-  { id: "t1", name: "Commander 500 - Torneio Mensal Abril", date: "15/04/2023" },
-  { id: "t2", name: "Commander 500 - Campeonato Regional", date: "01/05/2023" },
-  { id: "t3", name: "Commander 500 - Torneio Beneficente", date: "10/05/2023" },
-  { id: "t4", name: "Commander 500 - Torneio Online", date: "20/03/2023" },
-  { id: "t5", name: "Commander 500 - Torneio Mensal Maio", date: "15/05/2023" },
-  { id: "t6", name: "Commander 500 - Torneio Mensal Junho", date: "15/06/2023" },
-  { id: "t7", name: "Commander 500 - Campeonato Nacional", date: "01/07/2023" },
-  { id: "t8", name: "Commander 500 - Torneio Mensal Julho", date: "15/07/2023" },
-]
-
-// Interface para os resultados da API do Scryfall
 interface ScryfallCard {
   name: string
   image_uris?: {
@@ -75,6 +63,27 @@ export function CommanderFilter() {
   const partnerInputRef = useRef<HTMLInputElement>(null)
   const commanderSuggestionsRef = useRef<HTMLDivElement>(null)
   const partnerSuggestionsRef = useRef<HTMLDivElement>(null)
+
+  const [tournaments, setTournaments] = useState<{ id: string; name: string; date: string }[]>([]);
+
+  useEffect(() => {
+      api.get(`/tournaments/list`)
+        .then((response) => {
+          if (response.status !== 200) {
+            throw new Error("Erro ao carregar torneios");
+          }
+          setTournaments(
+            response.data.map((tournament: any) => ({
+              id: tournament.id,
+              name: tournament.name,
+              date: new Date(tournament.end_date).toLocaleDateString("pt-BR"),
+            }))
+          );
+        })
+        .catch((error) => {
+          console.error("Erro ao carregar dados de torneios:", error);
+        });
+    }, []);
 
   const handleReset = () => {
     setName("")
