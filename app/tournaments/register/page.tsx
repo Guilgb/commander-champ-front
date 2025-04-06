@@ -11,8 +11,6 @@ import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import { TournamentResultsTable } from "@/components/tournament-results-table"
-
-// Adicionar os novos imports
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -23,7 +21,6 @@ import { cn } from "@/lib/utils"
 import type { DateRange } from "react-day-picker"
 import api from "@/service/api"
 
-// Atualizar o componente RegisterTournamentPage
 export default function RegisterTournamentPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -32,7 +29,6 @@ export default function RegisterTournamentPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [tournamentData, setTournamentData] = useState<any>(null)
 
-  // Adicionar novos estados para os campos solicitados
   const [tournamentName, setTournamentName] = useState("")
   const [tournamentType, setTournamentType] = useState("presencial")
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -74,50 +70,47 @@ export default function RegisterTournamentPage() {
 
     setIsLoading(true)
 
-    // const response = await api.post(`/tournaments/`, {
-    //   name: tournamentName,
-    //   type: tournamentType,
-    //   start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-    //   end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-    //   link: tournamentLink,
-    //   user_id: Number(user?.id),
-    //   online: tournamentType,
-    //   format: "EDH",
-    // })
-    // if (response.status !== 201) {
-    //   toast({
-    //     title: "Erro ao carregar torneio",
-    //     description: "Não foi possível carregar os dados do torneio. Tente novamente.",
-    //     variant: "destructive",
-    //   })
-    //   setIsLoading(false)
-    //   return
-    // }
+    const response = await api.post(`/tournaments/`, {
+      name: tournamentName,
+      type: tournamentType,
+      start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+      end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+      link: tournamentLink,
+      user_id: Number(user?.id),
+      online: tournamentType,
+      format: "EDH",
+    })
+    if (response.status !== 201) {
+      toast({
+        title: "Erro ao carregar torneio",
+        description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+      return
+    }
 
-    // if(response.data.id) {
-    //   console.log("Tournament ID:", response.data.id)
-    //   const saveDecks = await api.post(`/decks/save`, {
-    //     url: tournamentLink,
-    //     tournament_id: response.data.id,
-    //   })
-    //   if (saveDecks.status !== 201) {
-    //     toast({
-    //       title: "Erro ao carregar torneio",
-    //       description: "Não foi possível carregar os dados do torneio. Tente novamente.",
-    //       variant: "destructive",
-    //     })
-    //     setIsLoading(false)
-    //     return
-    //   }
-    // }
+    if (response.data.id) {
+      const saveDecks = await api.post(`/decks/save`, {
+        url: tournamentLink,
+        tournament_id: response.data.id,
+      })
+      if (saveDecks.status !== 201) {
+        toast({
+          title: "Erro ao carregar torneio",
+          description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Mock tournament data
     const tournamentData = await api.post(`/tournaments/load-decks`, {
-      tournament_id: 31,
+      tournament_id: response.data.id,
     })
-    console.log(tournamentData)
 
     setTournamentData(tournamentData.data)
     setIsLoading(false)
@@ -130,7 +123,7 @@ export default function RegisterTournamentPage() {
 
   const handleSaveTournament = async () => {
     try {
-      const tournamentSave = await api.put(`/tournaments/update-all-decks`, {
+      await api.put(`/tournaments/update-all-decks`, {
         id: tournamentData.id,
         format: tournamentData.format,
         location: tournamentData.location,
@@ -138,16 +131,6 @@ export default function RegisterTournamentPage() {
         players: tournamentData.players,
         start_date: tournamentData.start_date,
       })
-
-      if (tournamentSave.status !== 201) {
-        toast({
-          title: "Erro ao salvar torneio",
-          description: "Não foi possível salvar os dados do torneio. Tente novamente.",
-          variant: "destructive",
-        })
-        setIsLoading(false)
-        return
-      }
     } catch (error) {
       toast({
         title: "Torneio não salvo",
