@@ -55,6 +55,8 @@ export function CommanderPerformanceStats() {
   });
 
   useEffect(() => {
+    if (commanderPerformanceData.length === 0) return;
+
     async function fetchCardData() {
       setLoading(true)
       const commanderNames = commanderPerformanceData.map((item) => item.commander)
@@ -62,7 +64,8 @@ export function CommanderPerformanceStats() {
 
       for (const name of commanderNames) {
         try {
-          const card = await getCardByName(name)
+          const formattedName = name.includes("+") ? name.split("+")[0].trim() : name;
+          const card = await getCardByName(formattedName);
           if (card) {
             cardDataMap[name] = card
           }
@@ -76,7 +79,7 @@ export function CommanderPerformanceStats() {
     }
 
     fetchCardData()
-  }, [])
+  }, [commanderPerformanceData])
 
   // Preparar dados para o gráfico
   const chartData = commanderPerformanceData.map((commander) => {

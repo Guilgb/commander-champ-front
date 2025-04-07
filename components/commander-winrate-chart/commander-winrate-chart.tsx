@@ -63,11 +63,10 @@ export function CommanderWinrateChart() {
         .catch((error) => {
           console.error("Erro ao carregar dados dos decks:", error);
         });
-      // Extrair os nomes dos comandantes
       const commanderNames = data.map((item) => item.commander)
 
-      // Buscar dados dos cards no Scryfall
       const cardDataMap: Record<string, ScryfallCard> = {}
+      if (data.length === 0) return
 
       for (const name of commanderNames) {
         try {
