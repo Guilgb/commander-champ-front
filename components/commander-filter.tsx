@@ -67,23 +67,23 @@ export function CommanderFilter() {
   const [tournaments, setTournaments] = useState<{ id: string; name: string; date: string }[]>([]);
 
   useEffect(() => {
-      api.get(`/tournaments/list`)
-        .then((response) => {
-          if (response.status !== 200) {
-            throw new Error("Erro ao carregar torneios");
-          }
-          setTournaments(
-            response.data.map((tournament: any) => ({
-              id: tournament.id,
-              name: tournament.name,
-              date: new Date(tournament.end_date).toLocaleDateString("pt-BR"),
-            }))
-          );
-        })
-        .catch((error) => {
-          console.error("Erro ao carregar dados de torneios:", error);
-        });
-    }, []);
+    api.get(`/tournaments/list`)
+      .then((response) => {
+        if (response.status !== 200) {
+          throw new Error("Erro ao carregar torneios");
+        }
+        setTournaments(
+          response.data.map((tournament: any) => ({
+            id: tournament.id,
+            name: tournament.name,
+            date: new Date(tournament.end_date).toLocaleDateString("pt-BR"),
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar dados de torneios:", error);
+      });
+  }, []);
 
   const handleReset = () => {
     setName("")
