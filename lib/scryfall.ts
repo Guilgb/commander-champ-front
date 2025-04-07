@@ -38,7 +38,6 @@ export interface ScryfallCard {
   set: string
 }
 
-// Função para buscar um card pelo nome exato
 export async function getCardByName(cardName: string): Promise<ScryfallCard | null> {
   try {
     const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}`)
@@ -58,12 +57,9 @@ export async function getCardByName(cardName: string): Promise<ScryfallCard | nu
   }
 }
 
-// Função para buscar vários cards por nome
 export async function getCardsByNames(cardNames: string[]): Promise<Record<string, ScryfallCard>> {
   const result: Record<string, ScryfallCard> = {}
 
-  // Scryfall recomenda não fazer mais de 10 requisições por segundo
-  // Então vamos processar em lotes de 10 com um pequeno delay
   const batchSize = 5
 
   for (let i = 0; i < cardNames.length; i += batchSize) {
@@ -96,9 +92,7 @@ export function getCardPriceBRL(card: ScryfallCard): number {
   return usdPrice * conversionRate
 }
 
-// Função para obter a URL da imagem do card
 export function getCardImageUrl(card: ScryfallCard, size: "small" | "normal" | "large" = "normal"): string {
-  // Alguns cards têm faces duplas
   if (!card.image_uris && card.card_faces && card.card_faces[0].image_uris) {
     return card.card_faces[0].image_uris.art_crop
   }
@@ -106,7 +100,6 @@ export function getCardImageUrl(card: ScryfallCard, size: "small" | "normal" | "
   return card.image_uris?.art_crop || "/placeholder.svg?height=300&width=215"
 }
 
-// Função para obter a cor do card para uso em gráficos
 export function getCardColor(card: ScryfallCard): string {
   const colorMap: Record<string, string> = {
     W: "#F9FAF4", // Branco
