@@ -11,130 +11,8 @@ import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfal
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
 import { CommanderDetails } from "@/components/commander-details"
-
-const commanderRankingData = [
-  {
-    id: "1",
-    name: "Yuriko, the Tiger's Shadow",
-    winrate: 80,
-    wins: 20,
-    losses: 5,
-    draws: 0,
-    tournaments: 8,
-    colors: "UB",
-    partner: null,
-  },
-  {
-    id: "2",
-    name: "Atraxa, Praetors' Voice",
-    winrate: 69,
-    wins: 18,
-    losses: 7,
-    draws: 1,
-    tournaments: 7,
-    colors: "WUBG",
-    partner: null,
-  },
-  {
-    id: "3",
-    name: "Omnath, Locus of Creation",
-    winrate: 68,
-    wins: 17,
-    losses: 8,
-    draws: 0,
-    tournaments: 6,
-    colors: "RGWU",
-    partner: null,
-  },
-  {
-    id: "4",
-    name: "Thrasios, Triton Hero",
-    winrate: 66,
-    wins: 16,
-    losses: 8,
-    draws: 0,
-    tournaments: 6,
-    colors: "UG",
-    partner: "Tymna the Weaver",
-  },
-  {
-    id: "5",
-    name: "Tymna the Weaver",
-    winrate: 65,
-    wins: 15,
-    losses: 8,
-    draws: 0,
-    tournaments: 6,
-    colors: "WB",
-    partner: "Thrasios, Triton Hero",
-  },
-  {
-    id: "6",
-    name: "Kaalia of the Vast",
-    winrate: 64,
-    wins: 16,
-    losses: 9,
-    draws: 0,
-    tournaments: 6,
-    colors: "RWB",
-    partner: null,
-  },
-  {
-    id: "7",
-    name: "Gishath, Sun's Avatar",
-    winrate: 60,
-    wins: 15,
-    losses: 8,
-    draws: 2,
-    tournaments: 5,
-    colors: "RGW",
-    partner: null,
-  },
-  {
-    id: "8",
-    name: "Krenko, Mob Boss",
-    winrate: 56,
-    wins: 14,
-    losses: 11,
-    draws: 0,
-    tournaments: 5,
-    colors: "R",
-    partner: null,
-  },
-  {
-    id: "9",
-    name: "Silas Renn, Seeker Adept",
-    winrate: 52,
-    wins: 13,
-    losses: 12,
-    draws: 0,
-    tournaments: 5,
-    colors: "UB",
-    partner: "Akiri, Line-Slinger",
-  },
-  {
-    id: "10",
-    name: "Muldrotha, the Gravetide",
-    winrate: 48,
-    wins: 12,
-    losses: 10,
-    draws: 3,
-    tournaments: 5,
-    colors: "BUG",
-    partner: null,
-  },
-  {
-    id: "11",
-    name: "Talrand, Sky Summoner",
-    winrate: 40,
-    wins: 10,
-    losses: 12,
-    draws: 3,
-    tournaments: 4,
-    colors: "U",
-    partner: null,
-  },
-]
+import { CommanderRankingResponse } from "./types"
+import api from "@/service/api"
 
 export function CommanderRanking() {
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
@@ -143,11 +21,37 @@ export function CommanderRanking() {
   const [sortBy, setSortBy] = useState("winrate")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedCommander, setSelectedCommander] = useState<string | null>(null)
+  const [commanderRankingData, setCommanderRanking] = useState<CommanderRankingResponse[]>([])
+
+  useEffect(() => {
+    api.post(`/decks/statistics/commander-winrate`)
+      .then((response) => {
+        if (response.status !== 201) {
+          throw new Error("Erro ao carregar o winrate dos comandantes");
+        }
+        setCommanderRanking(
+          response.data.map((tournament: CommanderRankingResponse) => ({
+            id: tournament.id,
+            commander: tournament.commander,
+            winrate: tournament.winrate,
+            wins: tournament.wins,
+            losses: tournament.losses,
+            draws: tournament.draws,
+            entries: tournament.entries,
+            colors: tournament.colors,
+            partner: tournament.partner,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar dados de torneios:", error);
+      });
+  }, []);
 
   useEffect(() => {
     async function fetchCardData() {
       setLoading(true)
-      const commanderNames = commanderRankingData.map((item) => item.name)
+      const commanderNames = commanderRankingData.map((item) => item.commander)
       const cardDataMap: Record<string, ScryfallCard> = {}
 
       for (const name of commanderNames) {
@@ -170,7 +74,7 @@ export function CommanderRanking() {
 
   // Filter commanders based on search term
   const filteredCommanders = commanderRankingData.filter((commander) =>
-    commander.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    commander.commander.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   // Sort commanders based on selected criteria
@@ -185,10 +89,10 @@ export function CommanderRanking() {
         comparison = a.wins - b.wins
         break
       case "tournaments":
-        comparison = a.tournaments - b.tournaments
+        comparison = a.entries - b.entries
         break
       case "name":
-        comparison = a.name.localeCompare(b.name)
+        comparison = a.commander.localeCompare(b.commander)
         break
       default:
         comparison = a.winrate - b.winrate
@@ -243,7 +147,7 @@ export function CommanderRanking() {
               <SelectContent>
                 <SelectItem value="winrate">Winrate</SelectItem>
                 <SelectItem value="wins">Vitórias</SelectItem>
-                <SelectItem value="tournaments">Torneios</SelectItem>
+                <SelectItem value="tournaments">Entradas</SelectItem>
                 <SelectItem value="name">Nome</SelectItem>
               </SelectContent>
             </Select>
@@ -269,7 +173,7 @@ export function CommanderRanking() {
                 <TableHead>Partner</TableHead>
                 <TableHead className="text-right">Winrate</TableHead>
                 <TableHead className="text-right">V/D/E</TableHead>
-                <TableHead className="text-right">Torneios</TableHead>
+                <TableHead className="text-right">Entradas</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,24 +181,24 @@ export function CommanderRanking() {
                 <TableRow
                   key={commander.id}
                   className="cursor-pointer hover:bg-muted"
-                  onClick={() => setSelectedCommander(commander.name)}
+                  onClick={() => setSelectedCommander(commander.commander)}
                 >
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {cardData[commander.name] ? (
+                      {cardData[commander.commander] ? (
                         <Avatar className="h-8 w-8 border-2 border-primary">
                           <AvatarImage
-                            src={getCardImageUrl(cardData[commander.name], "small")}
-                            alt={commander.name}
+                            src={getCardImageUrl(cardData[commander.commander], "small")}
+                            alt={commander.commander}
                             className="object-cover"
                           />
-                          <AvatarFallback>{commander.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
                         </Avatar>
                       ) : (
                         <Skeleton className="h-8 w-8 rounded-full" />
                       )}
-                      <span>{commander.name}</span>
+                      <span>{commander.commander}</span>
                     </div>
                   </TableCell>
                   <TableCell>{getColorBadge(commander.colors)}</TableCell>
@@ -316,7 +220,7 @@ export function CommanderRanking() {
                   <TableCell className="text-right">
                     {commander.wins}/{commander.losses}/{commander.draws}
                   </TableCell>
-                  <TableCell className="text-right">{commander.tournaments}</TableCell>
+                  <TableCell className="text-right">{commander.entries}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -329,7 +233,7 @@ export function CommanderRanking() {
             commanderName={selectedCommander}
             cardData={cardData[selectedCommander]}
             onClose={() => setSelectedCommander(null)}
-            winrateData={commanderRankingData.find((c) => c.name === selectedCommander)}
+            winrateData={commanderRankingData.find((c) => c.commander === selectedCommander)}
           />
         )}
       </CardContent>
