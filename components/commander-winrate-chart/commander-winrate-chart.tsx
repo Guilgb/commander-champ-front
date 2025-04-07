@@ -8,93 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
 import { CommanderDetails } from "@/components/commander-details"
-
-// Tipo para os dados de winrate do comandante
-interface CommanderWinrateData {
-  id: string
-  name: string
-  wins: number
-  losses: number
-  draws: number
-  winrate: number
-  colors: string
-}
-
-// Mock data for commander winrates
-const mockData: CommanderWinrateData[] = [
-  {
-    id: "1",
-    name: "Gishath, Sun's Avatar",
-    wins: 15,
-    losses: 8,
-    draws: 2,
-    winrate: 60,
-    colors: "RGW",
-  },
-  {
-    id: "2",
-    name: "Atraxa, Praetors' Voice",
-    wins: 18,
-    losses: 7,
-    draws: 1,
-    winrate: 69,
-    colors: "WUBG",
-  },
-  {
-    id: "3",
-    name: "Muldrotha, the Gravetide",
-    wins: 12,
-    losses: 10,
-    draws: 3,
-    winrate: 48,
-    colors: "BUG",
-  },
-  {
-    id: "4",
-    name: "Yuriko, the Tiger's Shadow",
-    wins: 20,
-    losses: 5,
-    draws: 0,
-    winrate: 80,
-    colors: "UB",
-  },
-  {
-    id: "5",
-    name: "Krenko, Mob Boss",
-    wins: 14,
-    losses: 11,
-    draws: 0,
-    winrate: 56,
-    colors: "R",
-  },
-  {
-    id: "6",
-    name: "Talrand, Sky Summoner",
-    wins: 10,
-    losses: 12,
-    draws: 3,
-    winrate: 40,
-    colors: "U",
-  },
-  {
-    id: "7",
-    name: "Kaalia of the Vast",
-    wins: 16,
-    losses: 9,
-    draws: 0,
-    winrate: 64,
-    colors: "RWB",
-  },
-  {
-    id: "8",
-    name: "Omnath, Locus of Creation",
-    wins: 17,
-    losses: 8,
-    draws: 0,
-    winrate: 68,
-    colors: "RGWU",
-  },
-]
+import { CommanderRankingResponse, CommanderWinrateData } from "./types"
+import api from "@/service/api"
 
 // Componente personalizado para o tooltip do gráfico
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -116,20 +31,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function CommanderWinrateChart() {
-  const [data, setData] = useState(mockData)
+  const [data, setData] = useState<CommanderRankingResponse[]>([])
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
   const [loading, setLoading] = useState(true)
   const [selectedCommander, setSelectedCommander] = useState<string | null>(null)
 
   useEffect(() => {
-    // Em uma aplicação real, você buscaria os dados de winrate da API
     // e então buscaria os dados dos cards do Scryfall
 
     async function fetchCardData() {
       setLoading(true)
-
+      api.post(`/decks/statistics/commander-winrate`)
+      .then((response) => {
+        if (response.status !== 201) {
+          throw new Error("Erro ao carregar o winrate dos comandantes");
+        }
+        setData(
+          response.data.map((tournament: CommanderRankingResponse) => ({
+            id: tournament.id,
+            commander: tournament.commander,
+            winrate: tournament.winrate,
+            wins: tournament.wins,
+            losses: tournament.losses,
+            draws: tournament.draws,
+            entries: tournament.entries,
+            colors: tournament.colors,
+            partner: tournament.partner,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar dados dos decks:", error);
+      });
       // Extrair os nomes dos comandantes
-      const commanderNames = data.map((item) => item.name)
+      const commanderNames = data.map((item) => item.commander)
 
       // Buscar dados dos cards no Scryfall
       const cardDataMap: Record<string, ScryfallCard> = {}
@@ -207,7 +142,7 @@ export function CommanderWinrateChart() {
           commanderName={selectedCommander}
           cardData={cardData[selectedCommander]}
           onClose={() => setSelectedCommander(null)}
-          winrateData={data.find((d) => d.name === selectedCommander)}
+          winrateData={data.find((d) => d.commander === selectedCommander)}
         />
       )}
 
@@ -216,23 +151,23 @@ export function CommanderWinrateChart() {
           <Card
             key={commander.id}
             className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => setSelectedCommander(commander.name)}
+            onClick={() => setSelectedCommander(commander.commander)}
           >
             <CardContent className="p-4 flex items-center space-x-4">
-              {cardData[commander.name] ? (
+              {cardData[commander.commander] ? (
                 <Avatar className="h-12 w-12 border-2 border-primary">
                   <AvatarImage
-                    src={getCardImageUrl(cardData[commander.name], "small")}
-                    alt={commander.name}
+                    src={getCardImageUrl(cardData[commander.commander], "small")}
+                    alt={commander.commander}
                     className="object-cover"
                   />
-                  <AvatarFallback>{commander.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
                 </Avatar>
               ) : (
                 <Skeleton className="h-12 w-12 rounded-full" />
               )}
               <div>
-                <p className="font-medium text-sm line-clamp-1">{commander.name}</p>
+                <p className="font-medium text-sm line-clamp-1">{commander.commander}</p>
                 <div className="flex items-center space-x-1">
                   <Badge variant="outline" className="text-xs">
                     {commander.winrate}% WR

@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CommanderFilter } from "@/components/commander-filter"
 import { CardFilter } from "@/components/card-filter"
-import { CommanderWinrateChart } from "@/components/commander-winrate-chart"
+import { CommanderWinrateChart } from "@/components/commander-winrate-chart/commander-winrate-chart"
 import { PopularCardsChart } from "@/components/popular-cards-chart"
 import { TopPercentageChart } from "@/components/top-percentage-chart"
 import { CommanderPerformanceStats } from "@/components/commander-performance-stats/commander-performance-stats"
