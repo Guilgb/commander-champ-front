@@ -64,7 +64,7 @@ export async function getCardsByNames(cardNames: string[]): Promise<Record<strin
 
   // Scryfall recomenda não fazer mais de 10 requisições por segundo
   // Então vamos processar em lotes de 10 com um pequeno delay
-  const batchSize = 10
+  const batchSize = 5
 
   for (let i = 0; i < cardNames.length; i += batchSize) {
     const batch = cardNames.slice(i, i + batchSize)
@@ -100,10 +100,10 @@ export function getCardPriceBRL(card: ScryfallCard): number {
 export function getCardImageUrl(card: ScryfallCard, size: "small" | "normal" | "large" = "normal"): string {
   // Alguns cards têm faces duplas
   if (!card.image_uris && card.card_faces && card.card_faces[0].image_uris) {
-    return card.card_faces[0].image_uris[size]
+    return card.card_faces[0].image_uris.art_crop
   }
 
-  return card.image_uris?.[size] || "/placeholder.svg?height=300&width=215"
+  return card.image_uris?.art_crop || "/placeholder.svg?height=300&width=215"
 }
 
 // Função para obter a cor do card para uso em gráficos

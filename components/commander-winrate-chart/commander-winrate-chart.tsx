@@ -42,27 +42,27 @@ export function CommanderWinrateChart() {
     async function fetchCardData() {
       setLoading(true)
       api.post(`/decks/statistics/commander-winrate`)
-      .then((response) => {
-        if (response.status !== 201) {
-          throw new Error("Erro ao carregar o winrate dos comandantes");
-        }
-        setData(
-          response.data.map((tournament: CommanderRankingResponse) => ({
-            id: tournament.id,
-            commander: tournament.commander,
-            winrate: tournament.winrate,
-            wins: tournament.wins,
-            losses: tournament.losses,
-            draws: tournament.draws,
-            entries: tournament.entries,
-            colors: tournament.colors,
-            partner: tournament.partner,
-          }))
-        );
-      })
-      .catch((error) => {
-        console.error("Erro ao carregar dados dos decks:", error);
-      });
+        .then((response) => {
+          if (response.status !== 201) {
+            throw new Error("Erro ao carregar o winrate dos comandantes");
+          }
+          setData(
+            response.data.map((tournament: CommanderRankingResponse) => ({
+              id: tournament.id,
+              commander: tournament.commander,
+              winrate: tournament.winrate,
+              wins: tournament.wins,
+              losses: tournament.losses,
+              draws: tournament.draws,
+              entries: tournament.entries,
+              colors: tournament.colors,
+              partner: tournament.partner,
+            }))
+          );
+        })
+        .catch((error) => {
+          console.error("Erro ao carregar dados dos decks:", error);
+        });
       // Extrair os nomes dos comandantes
       const commanderNames = data.map((item) => item.commander)
 
@@ -91,6 +91,7 @@ export function CommanderWinrateChart() {
   const renderCustomAxisTick = (props: any) => {
     const { x, y, payload } = props
     const commanderName = payload.value
+    console.log(commanderName)
     const card = cardData[commanderName]
 
     return (

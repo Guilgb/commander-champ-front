@@ -22,7 +22,7 @@ export function CommanderRanking() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedCommander, setSelectedCommander] = useState<string | null>(null)
   const [commanderRankingData, setCommanderRanking] = useState<CommanderRankingResponse[]>([])
-
+  let test: any
   useEffect(() => {
     api.post(`/decks/statistics/commander-winrate`)
       .then((response) => {
@@ -47,34 +47,36 @@ export function CommanderRanking() {
         console.error("Erro ao carregar dados de torneios:", error);
       });
   }, []);
-
   useEffect(() => {
-    async function fetchCardData() {
-      setLoading(true)
-      const commanderNames = commanderRankingData.map((item) => item.commander)
-      const cardDataMap: Record<string, ScryfallCard> = {}
+    if (commanderRankingData.length === 0) return;
 
-      for (const name of commanderNames) {
+    async function fetchCardData() {
+      setLoading(true);
+      const commanderNames = commanderRankingData.map((item) => item.commander);
+      const cardDataMap: Record<string, ScryfallCard> = {};
+
+      for (const commander of commanderNames) {
         try {
-          const card = await getCardByName(name)
+          const card = await getCardByName(commander);
           if (card) {
-            cardDataMap[name] = card
+            cardDataMap[commander] = card;
           }
         } catch (error) {
-          console.error(`Error fetching data for ${name}:`, error)
+          console.error(`Error fetching data for ${commander}:`, error);
         }
       }
 
-      setCardData(cardDataMap)
-      setLoading(false)
+      setCardData(cardDataMap);
+      setLoading(false);
     }
 
-    fetchCardData()
-  }, [])
+    fetchCardData();
+  }, [commanderRankingData]);
 
   // Filter commanders based on search term
   const filteredCommanders = commanderRankingData.filter((commander) =>
-    commander.commander.toLowerCase().includes(searchTerm.toLowerCase()),
+    commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (commander.partner && commander.partner.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   // Sort commanders based on selected criteria
