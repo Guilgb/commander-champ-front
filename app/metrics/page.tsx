@@ -4,7 +4,7 @@ import { CardFilter } from "@/components/card-filter"
 import { CommanderWinrateChart } from "@/components/commander-winrate-chart"
 import { PopularCardsChart } from "@/components/popular-cards-chart"
 import { TopPercentageChart } from "@/components/top-percentage-chart"
-import { CommanderPerformanceStats } from "@/components/commander-performance-stats"
+import { CommanderPerformanceStats } from "@/components/commander-performance-stats/commander-performance-stats"
 import { CommanderRanking } from "@/components/commander-ranking"
 import { CardRanking } from "@/components/card-ranking"
 
