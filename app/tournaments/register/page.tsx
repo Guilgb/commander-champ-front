@@ -85,6 +85,16 @@ export default function RegisterTournamentPage() {
 
   const handleSaveTournament = async () => {
     try {
+      if (!tournamentLink) {
+        toast({
+          title: "Link do torneio obrigatório",
+          description: "Por favor, insira um link válido para o torneio.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+      
       const response = await api.post(`/tournaments/`, {
         name: tournamentName,
         type: tournamentType,
