@@ -28,7 +28,6 @@ export default function RegisterTournamentPage() {
   const [tournamentLink, setTournamentLink] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [tournamentData, setTournamentData] = useState<any>(null)
-
   const [tournamentName, setTournamentName] = useState("")
   const [tournamentType, setTournamentType] = useState("presencial")
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -70,51 +69,14 @@ export default function RegisterTournamentPage() {
 
     setIsLoading(true)
 
-    const response = await api.post(`/tournaments/`, {
-      name: tournamentName,
-      type: tournamentType,
-      start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-      end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-      link: tournamentLink,
-      user_id: Number(user?.id),
-      online: tournamentType,
-      format: "EDH",
-    })
-    if (response.status !== 201) {
-      toast({
-        title: "Erro ao carregar torneio",
-        description: "Não foi possível carregar os dados do torneio. Tente novamente.",
-        variant: "destructive",
-      })
-      setIsLoading(false)
-      return
-    }
-
-    if (response.data.id) {
-      const saveDecks = await api.post(`/decks/save`, {
-        url: tournamentLink,
-        tournament_id: response.data.id,
-      })
-      if (saveDecks.status !== 201) {
-        toast({
-          title: "Erro ao carregar torneio",
-          description: "Não foi possível carregar os dados do torneio. Tente novamente.",
-          variant: "destructive",
-        })
-        setIsLoading(false)
-        return
-      }
-    }
-
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     const tournamentData = await api.post(`/tournaments/load-decks`, {
-      tournament_id: response.data.id,
+      url: tournamentLink,
     })
 
     setTournamentData(tournamentData.data)
     setIsLoading(false)
-
     toast({
       title: "Torneio carregado",
       description: "Os dados do torneio foram carregados com sucesso.",
@@ -123,14 +85,41 @@ export default function RegisterTournamentPage() {
 
   const handleSaveTournament = async () => {
     try {
-      await api.put(`/tournaments/update-all-decks`, {
-        id: tournamentData.id,
-        format: tournamentData.format,
-        location: tournamentData.location,
-        name: tournamentData.name,
-        players: tournamentData.players,
-        start_date: tournamentData.start_date,
+      const response = await api.post(`/tournaments/`, {
+        name: tournamentName,
+        type: tournamentType,
+        start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+        end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+        link: tournamentLink,
+        user_id: Number(user?.id),
+        online: tournamentType,
+        format: "EDH",
       })
+      if (response.status !== 201) {
+        toast({
+          title: "Erro ao carregar torneio",
+          description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      if (response.data.id) {
+        const saveDecks = await api.post(`/decks/save`, {
+          url: tournamentLink,
+          tournament_id: response.data.id,
+        })
+        if (saveDecks.status !== 201) {
+          toast({
+            title: "Erro ao carregar torneio",
+            description: "Não foi possível carregar os dados do torneio. Tente novamente.",
+            variant: "destructive",
+          })
+          setIsLoading(false)
+          return
+        }
+      }
     } catch (error) {
       toast({
         title: "Torneio não salvo",
