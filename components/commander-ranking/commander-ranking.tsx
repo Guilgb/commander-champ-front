@@ -9,9 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from "lucide-react"
 import { CommanderDetails } from "@/components/commander-details"
 import { CommanderRankingResponse } from "./types"
+import { Button } from "@/components/ui/button"
+import { Slider } from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
 import api from "@/service/api"
 
 export function CommanderRanking() {
@@ -22,7 +25,12 @@ export function CommanderRanking() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedCommander, setSelectedCommander] = useState<string | null>(null)
   const [commanderRankingData, setCommanderRanking] = useState<CommanderRankingResponse[]>([])
-  let test: any
+  const [showFilters, setShowFilters] = useState(false)
+  const [minWinrate, setMinWinrate] = useState(0)
+  const [maxWinrate, setMaxWinrate] = useState(100)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+
   useEffect(() => {
     api.post(`/decks/statistics/commander-winrate`)
       .then((response) => {
@@ -47,6 +55,7 @@ export function CommanderRanking() {
         console.error("Erro ao carregar dados de torneios:", error);
       });
   }, []);
+
   useEffect(() => {
     if (commanderRankingData.length === 0) return;
 
@@ -74,9 +83,11 @@ export function CommanderRanking() {
   }, [commanderRankingData]);
 
   // Filter commanders based on search term
-  const filteredCommanders = commanderRankingData.filter((commander) =>
-    commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (commander.partner && commander.partner.toLowerCase().includes(searchTerm.toLowerCase())),
+  const filteredCommanders = commanderRankingData.filter(
+    (commander) =>
+      commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      commander.winrate >= minWinrate &&
+      commander.winrate <= maxWinrate,
   )
 
   // Sort commanders based on selected criteria
@@ -103,7 +114,24 @@ export function CommanderRanking() {
     return sortOrder === "desc" ? -comparison : comparison
   })
 
-  // Function to get color badge for commander
+  const totalPages = Math.ceil(sortedCommanders.length / itemsPerPage)
+  const currentCommanders = sortedCommanders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+  }
+
+  const goToFirstPage = () => goToPage(1)
+  const goToPreviousPage = () => goToPage(currentPage - 1)
+  const goToNextPage = () => goToPage(currentPage + 1)
+  const goToLastPage = () => goToPage(totalPages)
+
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, minWinrate, maxWinrate, sortBy, sortOrder])
+
+
   const getColorBadge = (colors: string) => {
     const colorMap: Record<string, string> = {
       W: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100",
@@ -142,7 +170,20 @@ export function CommanderRanking() {
             />
           </div>
           <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-1"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+            </Button>
+
+            <Select
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value as "winrate" | "wins" | "tournaments" | "name")}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
@@ -165,6 +206,47 @@ export function CommanderRanking() {
           </div>
         </div>
 
+        {showFilters && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-md mb-6">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="winrate-range">
+                  Winrate: {minWinrate}% - {maxWinrate}%
+                </Label>
+              </div>
+              <div className="pt-4">
+                <Slider
+                  id="winrate-range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[minWinrate, maxWinrate]}
+                  onValueChange={(value) => {
+                    setMinWinrate(value[0])
+                    setMaxWinrate(value[1])
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setMinWinrate(0)
+                  setMaxWinrate(100)
+                  setSearchTerm("")
+                  setSortBy("winrate")
+                  setSortOrder("desc")
+                }}
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -179,55 +261,161 @@ export function CommanderRanking() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedCommanders.map((commander, index) => (
-                <TableRow
-                  key={commander.id}
-                  className="cursor-pointer hover:bg-muted"
-                  onClick={() => setSelectedCommander(commander.commander)}
-                >
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {cardData[commander.commander] ? (
-                        <Avatar className="h-8 w-8 border-2 border-primary">
-                          <AvatarImage
-                            src={getCardImageUrl(cardData[commander.commander], "small")}
-                            alt={commander.commander}
-                            className="object-cover"
-                          />
-                          <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                      )}
-                      <span>{commander.commander}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getColorBadge(commander.colors)}</TableCell>
-                  <TableCell>
-                    {commander.partner ? (
+              {loading ? (
+                Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-4 w-12 ml-auto" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-4 w-16 ml-auto" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-4 w-8 ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : currentCommanders.length > 0 ? (
+                currentCommanders.map((commander, index) => (
+                  <TableRow
+                    key={commander.id}
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={() => setSelectedCommander(commander.commander)}
+                  >
+                    <TableCell className="font-medium">#{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <span>Partner com</span>
-                          <span className="font-semibold">{commander.partner}</span>
-                        </Badge>
+                        {cardData[commander.commander] ? (
+                          <Avatar className="h-8 w-8 border-2 border-primary">
+                            <AvatarImage
+                              src={getCardImageUrl(cardData[commander.commander], "small")}
+                              alt={commander.commander}
+                              className="object-cover"
+                            />
+                            <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        )}
+                        <span>{commander.commander}</span>
                       </div>
-                    ) : (
-                      "-"
-                    )}
+                    </TableCell>
+                    <TableCell>{getColorBadge(commander.colors)}</TableCell>
+                    <TableCell>
+                      {commander.partner ? (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <span>Partner com</span>
+                            <span className="font-semibold">{commander.partner}</span>
+                          </Badge>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      <Badge variant={commander.winrate >= 60 ? "default" : "outline"}>{commander.winrate}%</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {commander.wins}/{commander.losses}/{commander.draws}
+                    </TableCell>
+                    <TableCell className="text-right">{commander.entries}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                    Nenhum comandante encontrado com os filtros atuais.
                   </TableCell>
-                  <TableCell className="text-right font-medium">
-                    <Badge variant={commander.winrate >= 60 ? "default" : "outline"}>{commander.winrate}%</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {commander.wins}/{commander.losses}/{commander.draws}
-                  </TableCell>
-                  <TableCell className="text-right">{commander.entries}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
+
+        {/* Paginação */}
+        {sortedCommanders.length > 0 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Mostrando {(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, sortedCommanders.length)} de {sortedCommanders.length}
+              </span>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToFirstPage}
+                disabled={currentPage === 1}
+                title="Primeira página"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                title="Página anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <span className="mx-2 text-sm">
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                title="Próxima página"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToLastPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                title="Última página"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Mostrar detalhes do comandante quando um comandante for selecionado */}
         {selectedCommander && cardData[selectedCommander] && (
