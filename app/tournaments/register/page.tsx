@@ -94,7 +94,6 @@ export default function RegisterTournamentPage() {
         setIsLoading(false)
         return
       }
-      
       const response = await api.post(`/tournaments/`, {
         name: tournamentName,
         type: tournamentType,
@@ -115,21 +114,6 @@ export default function RegisterTournamentPage() {
         return
       }
 
-      if (response.data.id) {
-        const saveDecks = await api.post(`/decks/save`, {
-          url: tournamentLink,
-          tournament_id: response.data.id,
-        })
-        if (saveDecks.status !== 201) {
-          toast({
-            title: "Erro ao carregar torneio",
-            description: "Não foi possível carregar os dados do torneio. Tente novamente.",
-            variant: "destructive",
-          })
-          setIsLoading(false)
-          return
-        }
-      }
     } catch (error) {
       toast({
         title: "Torneio não salvo",
