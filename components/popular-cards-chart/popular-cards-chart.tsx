@@ -8,80 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
 import { CardDetails } from "@/components/card-details"
+import { MostUsedCards, PopularCardData } from "./types"
+import api from "@/service/api"
 
-// Tipo para os dados de cards populares
-interface PopularCardData {
-  id: string
-  name: string
-  count: number
-  percentage: number
-}
-
-// Mock data for popular cards
-const mockData: PopularCardData[] = [
-  {
-    id: "1",
-    name: "Swords to Plowshares",
-    count: 45,
-    percentage: 75,
-  },
-  {
-    id: "2",
-    name: "Counterspell",
-    count: 38,
-    percentage: 63,
-  },
-  {
-    id: "3",
-    name: "Cultivate",
-    count: 42,
-    percentage: 70,
-  },
-  {
-    id: "4",
-    name: "Lightning Bolt",
-    count: 36,
-    percentage: 60,
-  },
-  {
-    id: "5",
-    name: "Demonic Tutor",
-    count: 30,
-    percentage: 50,
-  },
-  {
-    id: "6",
-    name: "Arcane Signet",
-    count: 52,
-    percentage: 87,
-  },
-  {
-    id: "7",
-    name: "Command Tower",
-    count: 58,
-    percentage: 97,
-  },
-  {
-    id: "8",
-    name: "Path to Exile",
-    count: 40,
-    percentage: 67,
-  },
-  {
-    id: "9",
-    name: "Cyclonic Rift",
-    count: 32,
-    percentage: 53,
-  },
-  {
-    id: "10",
-    name: "Farseek",
-    count: 39,
-    percentage: 65,
-  },
-]
-
-// Componente personalizado para o tooltip do gráfico
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
@@ -89,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <Card className="p-2 bg-background border shadow-md">
         <CardContent className="p-2">
           <p className="font-bold">{data.name}</p>
-          <p>Quantidade: {data.count} decks</p>
+          <p>Quantidade: {data.quantity} decks</p>
           <p>Percentual: {data.percentage}% dos decks</p>
         </CardContent>
       </Card>
@@ -99,20 +28,35 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function PopularCardsChart() {
-  const [data, setData] = useState(mockData) 
+  const [data, setData] = useState<MostUsedCards[]>([])
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
   const [loading, setLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
 
   useEffect(() => {
-    // Em uma aplicação real, você buscaria os dados de cards populares da API
-    // e então buscaria os dados dos cards do Scryfall
-
     async function fetchCardData() {
       setLoading(true)
 
+      const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
+        // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+        // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+      })
+
+      const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
+
+
+      const top10Cards = mostUsedCards.data
+        .filter(
+          (card) =>
+            (card.type !== "Land" || card.name === "Arcane Signet") &&
+            !filterList.includes(card.name)
+        )
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10);
+
+      setData(top10Cards)
       // Extrair os nomes dos cards
-      const cardNames = data.map((item) => item.name)
+      const cardNames = top10Cards.map((item) => item.name)
 
       // Buscar dados dos cards no Scryfall
       const cardDataMap: Record<string, ScryfallCard> = {}
@@ -176,11 +120,11 @@ export function PopularCardsChart() {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
+          <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} /> {/* Exibe valores como porcentagem */}
           <YAxis dataKey="name" type="category" width={90} tick={renderCustomAxisTick} interval={0} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Bar dataKey="count" name="Quantidade" fill="#60a5fa" />
+          <Bar dataKey="percentage" name="Porcentagem" fill="#60a5fa" /> {/* Usa o campo percentage */}
         </BarChart>
       </ResponsiveContainer>
 
@@ -189,7 +133,9 @@ export function PopularCardsChart() {
           cardName={selectedCard}
           cardData={cardData[selectedCard]}
           onClose={() => setSelectedCard(null)}
-          popularityData={data.find((d) => d.name === selectedCard)}
+          popularityData={data
+            .filter((d) => d.name === selectedCard)
+            .map((d) => ({ count: d.quantity, percentage: d.percentage }))[0]}
         />
       )}
 
@@ -220,7 +166,7 @@ export function PopularCardsChart() {
                     {card.percentage}%
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {card.count} decks
+                    {card.quantity} decks
                   </Badge>
                 </div>
               </div>

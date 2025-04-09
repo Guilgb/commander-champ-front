@@ -38,9 +38,17 @@ export function CardRanking() {
         // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
       })
 
-      setMostUsedCards(mostUsedCards.data)
+      const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
 
-      const cardNames = mostUsedCards.data?.map((card) => card.name)
+      const filteredCards = mostUsedCards.data.filter(
+        (card) =>
+          (card.type !== "Land" || card.name === "Arcane Signet") &&
+          !filterList.includes(card.name)
+      )
+
+      setMostUsedCards(filteredCards)
+
+      const cardNames = filteredCards?.map((card) => card.name)
       const cardDataMap: Record<string, ScryfallCard> = {}
 
       for (const name of cardNames) {
@@ -60,7 +68,6 @@ export function CardRanking() {
 
     fetchCardData()
   }, [])
-  // console.log(mostUsedCards)
   // Filter cards based on search term
   const filteredCards = mostUsedCards
     .filter(
@@ -151,6 +158,7 @@ export function CardRanking() {
                       setMinPercentage(value[0])
                       setMaxPercentage(value[1])
                     }}
+                    className="w-full" // Adiciona largura total para garantir que a barra seja renderizada corretamente
                   />
                 </div>
               </div>
@@ -290,4 +298,3 @@ export function CardRanking() {
     </Card>
   )
 }
-

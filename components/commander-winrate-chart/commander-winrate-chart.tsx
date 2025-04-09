@@ -46,19 +46,23 @@ export function CommanderWinrateChart() {
           if (response.status !== 201) {
             throw new Error("Erro ao carregar o winrate dos comandantes");
           }
-          setData(
-            response.data.map((tournament: CommanderRankingResponse) => ({
-              id: tournament.id,
-              commander: tournament.commander,
-              winrate: tournament.winrate,
-              wins: tournament.wins,
-              losses: tournament.losses,
-              draws: tournament.draws,
-              entries: tournament.entries,
-              colors: tournament.colors,
-              partner: tournament.partner,
-            }))
-          );
+
+          const data = response.data.map((tournament: CommanderRankingResponse) => ({
+            id: tournament.id,
+            commander: tournament.commander,
+            winrate: tournament.winrate,
+            wins: tournament.wins,
+            losses: tournament.losses,
+            draws: tournament.draws,
+            entries: tournament.entries,
+            colors: tournament.colors,
+            partner: tournament.partner,
+          }))
+
+            const top10Data: CommanderRankingResponse[] = data
+            .sort((a: CommanderRankingResponse, b: CommanderRankingResponse) => b.winrate - a.winrate)
+            .slice(0, 10);
+          setData(top10Data);
         })
         .catch((error) => {
           console.error("Erro ao carregar dados dos decks:", error);
@@ -92,7 +96,7 @@ export function CommanderWinrateChart() {
     const commanderName = payload.value
     console.log(commanderName)
     const card = cardData[commanderName]
-    
+
     return (
       <g transform={`translate(${x},${y})`}>
         <foreignObject width={40} height={40} x={-20} y={5}>
