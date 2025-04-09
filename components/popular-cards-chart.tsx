@@ -99,7 +99,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function PopularCardsChart() {
-  const [data, setData] = useState(mockData)
+  const [data, setData] = useState(mockData) 
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
   const [loading, setLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState<string | null>(null)

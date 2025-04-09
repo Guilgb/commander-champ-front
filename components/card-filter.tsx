@@ -18,7 +18,7 @@ import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 
 // Mock data para torneios
-const tournaments = [
+const tournamentsMock = [
   { id: "t1", name: "Commander 500 - Torneio Mensal Abril", date: "15/04/2023" },
   { id: "t2", name: "Commander 500 - Campeonato Regional", date: "01/05/2023" },
   { id: "t3", name: "Commander 500 - Torneio Beneficente", date: "10/05/2023" },
@@ -444,7 +444,7 @@ export function CardFilter() {
                 <CommandList>
                   <CommandEmpty>Nenhum torneio encontrado.</CommandEmpty>
                   <CommandGroup>
-                    {tournaments.map((tournament) => (
+                    {tournamentsMock.map((tournament) => (
                       <CommandItem
                         key={tournament.id}
                         onSelect={() => toggleTournament(tournament.id)}
@@ -491,7 +491,7 @@ export function CardFilter() {
       {selectedTournaments.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {selectedTournaments.map((tournamentId) => {
-            const tournament = tournaments.find((t) => t.id === tournamentId)
+            const tournament = tournamentsMock.find((t) => t.id === tournamentId)
             return tournament ? (
               <Badge key={tournamentId} variant="secondary" className="flex items-center gap-1">
                 {tournament.name}
