@@ -123,13 +123,13 @@ export function CommanderPerformanceStats() {
   }
 
   const top10Commanders = commanderPerformanceData
-    .filter((commander) => commander.entries > 0) // Filtra comandantes com entradas válidas
+    .filter((commander) => commander.entries > 0) 
     .map((commander) => ({
       ...commander,
-      winrate: (commander.champion / commander.entries) * 100, // Calcula o winrate
+      winrate: (commander.champion / commander.entries) * 100, 
     }))
-    .sort((a, b) => b.winrate - a.winrate) // Ordena pelo maior winrate
-    .slice(0, 10) // Garante que apenas os 10 primeiros sejam retornados
+    .sort((a, b) => b.winrate - a.winrate) 
+    .slice(0, 10) 
 
 
   return (

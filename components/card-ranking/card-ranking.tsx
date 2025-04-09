@@ -27,6 +27,8 @@ export function CardRanking() {
   const [mostUsedCards, setMostUsedCards] = useState<MostUsedCards[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [selectedCardData, setSelectedCardData] = useState<ScryfallCard | null>(null)
+
 
   // Buscar dados dos cards quando o componente for montado
   useEffect(() => {
@@ -48,19 +50,7 @@ export function CardRanking() {
 
       setMostUsedCards(filteredCards)
 
-      const cardNames = filteredCards?.map((card) => card.name)
       const cardDataMap: Record<string, ScryfallCard> = {}
-
-      for (const name of cardNames) {
-        try {
-          const card = await getCardByName(name)
-          if (card) {
-            cardDataMap[name] = card
-          }
-        } catch (error) {
-          console.error(`Error fetching data for ${name}:`, error)
-        }
-      }
 
       setCardData(cardDataMap)
       setIsLoading(false)
@@ -68,6 +58,23 @@ export function CardRanking() {
 
     fetchCardData()
   }, [])
+
+  const handleCardSelection = async (cardName: string) => {
+    setSelectedCard(cardName)
+    if (!cardData[cardName]) {
+      try {
+        const card = await getCardByName(cardName)
+        if (card) {
+          setCardData((prev) => ({ ...prev, [cardName]: card }))
+          setSelectedCardData(card)
+        }
+      } catch (error) {
+        console.error(`Error fetching data for ${cardName}:`, error)
+      }
+    } else {
+      setSelectedCardData(cardData[cardName])
+    }
+  }
   // Filter cards based on search term
   const filteredCards = mostUsedCards
     .filter(
@@ -82,7 +89,6 @@ export function CardRanking() {
       } else if (sortBy === "percentage") {
         return b.percentage - a.percentage
       } else {
-        // Default sort by rank (index)
         return mostUsedCards.indexOf(a) - mostUsedCards.indexOf(b)
       }
     })
@@ -187,7 +193,7 @@ export function CardRanking() {
             <div
               key={card.id}
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-              onClick={() => setSelectedCard(card.name)}
+              onClick={() => handleCardSelection(card.name)} // Chama a função ao clicar no card
             >
               <div className="flex-shrink-0 w-8 text-center font-bold text-muted-foreground">
                 #{(currentPage - 1) * itemsPerPage + index + 1}
@@ -283,11 +289,14 @@ export function CardRanking() {
         </div>
 
         {/* Mostrar detalhes do card quando um card for selecionado */}
-        {selectedCard && cardData[selectedCard] && (
+        {selectedCard && selectedCardData && (
           <CardDetails
             cardName={selectedCard}
-            cardData={cardData[selectedCard]}
-            onClose={() => setSelectedCard(null)}
+            cardData={selectedCardData}
+            onClose={() => {
+              setSelectedCard(null)
+              setSelectedCardData(null)
+            }}
             popularityData={{
               count: mostUsedCards.find((card) => card?.name === selectedCard)?.quantity ?? 0,
               percentage: mostUsedCards.find((card) => card?.name === selectedCard)?.percentage ?? 0,

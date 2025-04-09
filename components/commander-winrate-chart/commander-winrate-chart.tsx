@@ -67,8 +67,7 @@ export function CommanderWinrateChart() {
         .catch((error) => {
           console.error("Erro ao carregar dados dos decks:", error);
         });
-      const commanderNames = data.map((item) => item.commander)
-
+      const commanderNames = data.slice(0, 10).map((item) => item.commander)
       const cardDataMap: Record<string, ScryfallCard> = {}
       if (data.length === 0) return
 
@@ -88,7 +87,7 @@ export function CommanderWinrateChart() {
     }
 
     fetchCardData()
-  }, [data])
+  },)
 
   // Função para renderizar o rótulo do eixo X com imagens
   const renderCustomAxisTick = (props: any) => {
