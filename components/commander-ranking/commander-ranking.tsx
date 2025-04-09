@@ -152,6 +152,11 @@ export function CommanderRanking() {
     )
   }
 
+  const top10Commanders = commanderRankingData
+    .filter((commander) => commander.entries > 0) // Filtra comandantes com entradas válidas
+    .sort((a, b) => b.winrate - a.winrate) // Ordena pelo maior winrate
+    .slice(0, 10) // Pega os 10 primeiros
+
   return (
     <Card>
       <CardHeader>
@@ -292,8 +297,8 @@ export function CommanderRanking() {
                       </TableCell>
                     </TableRow>
                   ))
-              ) : currentCommanders.length > 0 ? (
-                currentCommanders.map((commander, index) => (
+              ) : top10Commanders.length > 0 ? (
+                top10Commanders.map((commander, index) => (
                   <TableRow
                     key={commander.id}
                     className="cursor-pointer hover:bg-muted"
@@ -423,7 +428,7 @@ export function CommanderRanking() {
             commanderName={selectedCommander}
             cardData={cardData[selectedCommander]}
             onClose={() => setSelectedCommander(null)}
-            winrateData={commanderRankingData.find((c) => c.commander === selectedCommander)}
+            winrateData={top10Commanders.find((c) => c.commander === selectedCommander)}
           />
         )}
       </CardContent>

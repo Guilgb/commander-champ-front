@@ -122,6 +122,16 @@ export function CommanderPerformanceStats() {
     )
   }
 
+  const top10Commanders = commanderPerformanceData
+    .filter((commander) => commander.entries > 0) // Filtra comandantes com entradas válidas
+    .map((commander) => ({
+      ...commander,
+      winrate: (commander.champion / commander.entries) * 100, // Calcula o winrate
+    }))
+    .sort((a, b) => b.winrate - a.winrate) // Ordena pelo maior winrate
+    .slice(0, 10) // Garante que apenas os 10 primeiros sejam retornados
+
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -160,7 +170,7 @@ export function CommanderPerformanceStats() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 mt-6">
-          {commanderPerformanceData.map((commander) => (
+          {top10Commanders.map((commander) => (
             <Card key={commander.id} className="w-full md:w-auto">
               <CardContent className="p-4 flex items-center gap-4">
                 {cardData[commander.commander] ? (

@@ -92,7 +92,7 @@ export function CommanderWinrateChart() {
     const commanderName = payload.value
     console.log(commanderName)
     const card = cardData[commanderName]
-
+    
     return (
       <g transform={`translate(${x},${y})`}>
         <foreignObject width={40} height={40} x={-20} y={5}>

@@ -7,6 +7,7 @@ import { TopPercentageChart } from "@/components/top-percentage-chart"
 import { CommanderPerformanceStats } from "@/components/commander-performance-stats/commander-performance-stats"
 import { CommanderRanking } from "@/components/commander-ranking/commander-ranking"
 import { CardRanking } from "@/components/card-ranking/card-ranking"
+import { CardFiltersProvider, CommanderFiltersProvider } from "../contexts/filters-context"
 
 export default function MetricsPage() {
   return (
@@ -20,28 +21,24 @@ export default function MetricsPage() {
         </TabsList>
 
         <TabsContent value="commanders" className="space-y-8">
-          {/* Filtros */}
-          <CommanderFilter />
+          <CommanderFiltersProvider>
+            <CommanderFilter />
 
-          {/* Gráficos */}
-          <div className="space-y-8">
-            <TopPercentageChart />
-            <CommanderPerformanceStats />
-          </div>
+            <div className="space-y-8">
+              <TopPercentageChart />
+              <CommanderPerformanceStats />
+            </div>
 
-          {/* Ranking */}
-          <CommanderRanking />
+            <CommanderRanking />
+          </CommanderFiltersProvider>
         </TabsContent>
 
         <TabsContent value="cards" className="space-y-8">
-          {/* Filtros */}
-          <CardFilter />
-
-          {/* Gráficos */}
-          <PopularCardsChart />
-
-          {/* Ranking */}
-          <CardRanking />
+          <CardFiltersProvider>
+            <CardFilter />
+            <PopularCardsChart />
+            <CardRanking />
+          </CardFiltersProvider>
         </TabsContent>
       </Tabs>
     </div>
