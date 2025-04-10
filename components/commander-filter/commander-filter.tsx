@@ -46,6 +46,12 @@ export function CommanderFilter() {
   const partnerSuggestionsRef = useRef<HTMLDivElement>(null)
   const [tournaments, setTournaments] = useState<{ id: string; name: string; date: string }[]>([]);
   const { filters, setFilters } = useCommanderFilters()
+  const [playerSuggestions, setPlayerSuggestions] = useState<string[]>([])
+  const [isLoadingPlayers, setIsLoadingPlayers] = useState(false)
+  const [showPlayerSuggestions, setShowPlayerSuggestions] = useState(false)
+  const playerInputRef = useRef<HTMLInputElement>(null)
+  const playerSuggestionsRef = useRef<HTMLDivElement>(null)
+
 
   useEffect(() => {
     api.get(`/tournaments/list`)
@@ -418,7 +424,7 @@ export function CommanderFilter() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="player-name">Nome do Jogador</Label>
           <Input
             id="player-name"
@@ -426,7 +432,7 @@ export function CommanderFilter() {
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
           />
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label>Período</Label>
