@@ -16,6 +16,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from "@/components/ui/badge"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
+import { ScryfallCard, ScryfallResponse } from "./types"
 
 // Mock data para torneios
 const tournamentsMock = [
@@ -30,23 +31,7 @@ const tournamentsMock = [
 ]
 
 // Interface para os resultados da API do Scryfall
-interface ScryfallCard {
-  name: string
-  image_uris?: {
-    small: string
-  }
-  card_faces?: Array<{
-    name: string
-    image_uris?: {
-      small: string
-    }
-  }>
-}
 
-interface ScryfallResponse {
-  data: ScryfallCard[]
-  has_more: boolean
-}
 
 export function CardFilter() {
   const [name, setName] = useState("")
@@ -59,8 +44,6 @@ export function CardFilter() {
   const [titleFilter, setTitleFilter] = useState("all")
   const [deckEntries, setDeckEntries] = useState("all")
   const [minQuantity, setMinQuantity] = useState(1)
-
-  // Estados para o comandante com autocompletar
   const [commander, setCommander] = useState("")
   const [commanderSuggestions, setCommanderSuggestions] = useState<ScryfallCard[]>([])
   const [isLoadingCommander, setIsLoadingCommander] = useState(false)
@@ -88,7 +71,6 @@ export function CardFilter() {
     )
   }
 
-  // Função para buscar comandantes da API do Scryfall
   const fetchCommanders = async (searchTerm: string) => {
     if (searchTerm.length < 2) {
       setCommanderSuggestions([])
@@ -98,14 +80,12 @@ export function CardFilter() {
     setIsLoadingCommander(true)
 
     try {
-      // Buscar cards que são comandantes (legendary creatures ou planeswalkers com "can be your commander")
       const query = `${searchTerm} (t:legendary t:creature OR o:"can be your commander")`
       const response = await fetch(
         `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=name&unique=cards`,
       )
 
       if (response.status === 404) {
-        // Scryfall retorna 404 quando não encontra resultados
         setCommanderSuggestions([])
         return
       }
@@ -125,7 +105,6 @@ export function CardFilter() {
     }
   }
 
-  // Função alternativa para buscar comandantes usando a API de autocomplete
   const fetchCommanderSuggestions = async (searchTerm: string) => {
     if (searchTerm.length < 2) {
       setCommanderSuggestions([])
@@ -135,7 +114,6 @@ export function CardFilter() {
     setIsLoadingCommander(true)
 
     try {
-      // Usar a API de autocomplete do Scryfall
       const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(searchTerm)}`)
 
       if (!response.ok) {
@@ -149,7 +127,6 @@ export function CardFilter() {
         return
       }
 
-      // Para cada nome de card sugerido, buscar os detalhes do card
       const cardPromises = data.data.slice(0, 5).map(async (cardName: string) => {
         try {
           const cardResponse = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}`)
@@ -158,7 +135,6 @@ export function CardFilter() {
 
           const cardData = await cardResponse.json()
 
-          // Verificar se é um comandante válido
           const isLegendary = cardData.type_line?.includes("Legendary") && cardData.type_line?.includes("Creature")
           const canBeCommander = cardData.oracle_text?.includes("can be your commander")
 
@@ -184,7 +160,6 @@ export function CardFilter() {
     }
   }
 
-  // Debounce para as buscas
   useEffect(() => {
     const timer = setTimeout(() => {
       if (showCommanderSuggestions && commander.length >= 2) {
@@ -195,7 +170,6 @@ export function CardFilter() {
     return () => clearTimeout(timer)
   }, [commander, showCommanderSuggestions])
 
-  // Fechar sugestões ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -214,7 +188,6 @@ export function CardFilter() {
     }
   }, [])
 
-  // Selecionar um comandante das sugestões
   const selectCommander = (cardName: string) => {
     setCommander(cardName)
     setShowCommanderSuggestions(false)
@@ -235,20 +208,62 @@ export function CardFilter() {
 
         <div className="space-y-2">
           <Label htmlFor="card-colors">Cores</Label>
-          <Select value={colors.join("")} onValueChange={(value) => setColors(value.split(""))}>
-            <SelectTrigger id="card-colors">
-              <SelectValue placeholder="Selecionar cores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as cores</SelectItem>
-              <SelectItem value="W">Branco (W)</SelectItem>
-              <SelectItem value="U">Azul (U)</SelectItem>
-              <SelectItem value="B">Preto (B)</SelectItem>
-              <SelectItem value="R">Vermelho (R)</SelectItem>
-              <SelectItem value="G">Verde (G)</SelectItem>
-              <SelectItem value="C">Incolor (C)</SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span>
+                  {colors.length > 0 ? `${colors.join(", ")}` : "Selecionar cores"}
+                </span>
+                {colors.length > 0 ? (
+                  <X
+                    className="h-4 w-4 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setColors([])
+                    }}
+                  />
+                ) : (
+                  <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0" align="start">
+              <Command>
+                <CommandList>
+                  <CommandGroup>
+                    {["W", "U", "B", "R", "G", "C"].map((color) => (
+                      <CommandItem
+                        key={color}
+                        onSelect={() =>
+                          setColors((prev) =>
+                            prev.includes(color)
+                              ? prev.filter((c) => c !== color)
+                              : [...prev, color]
+                          )
+                        }
+                        className="flex items-center justify-between"
+                      >
+                        <span>
+                          {color === "W"
+                            ? "Branco (W)"
+                            : color === "U"
+                              ? "Azul (U)"
+                              : color === "B"
+                                ? "Preto (B)"
+                                : color === "R"
+                                  ? "Vermelho (R)"
+                                  : color === "G"
+                                    ? "Verde (G)"
+                                    : "Incolor (C)"}
+                        </span>
+                        {colors.includes(color) && <Check className="h-4 w-4" />}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="space-y-2">
@@ -266,6 +281,7 @@ export function CardFilter() {
               <SelectItem value="enchantment">Encantamento</SelectItem>
               <SelectItem value="planeswalker">Planeswalker</SelectItem>
               <SelectItem value="land">Terreno</SelectItem>
+              <SelectItem value="battle">Battle</SelectItem>
             </SelectContent>
           </Select>
         </div>

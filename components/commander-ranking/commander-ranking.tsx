@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import api from "@/service/api"
+import { useCommanderFilters } from "@/app/contexts/filters-context"
 
 export function CommanderRanking() {
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
@@ -30,26 +31,50 @@ export function CommanderRanking() {
   const [maxWinrate, setMaxWinrate] = useState(100)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const { filters, setFilters } = useCommanderFilters()
 
   useEffect(() => {
+
+    const { colors, playerName, dataRane, selectedTournaments, title, commander, partner } = filters
     api.post(`/decks/statistics/commander-winrate`)
       .then((response) => {
         if (response.status !== 201) {
           throw new Error("Erro ao carregar o winrate dos comandantes");
         }
-        setCommanderRanking(
-          response.data.map((tournament: CommanderRankingResponse) => ({
-            id: tournament.id,
-            commander: tournament.commander,
-            winrate: tournament.winrate,
-            wins: tournament.wins,
-            losses: tournament.losses,
-            draws: tournament.draws,
-            entries: tournament.entries,
-            colors: tournament.colors,
-            partner: tournament.partner,
-          }))
-        );
+
+        const data = response.data.map((tournament: CommanderRankingResponse) => ({
+          id: tournament.id,
+          commander: tournament.commander,
+          winrate: tournament.winrate,
+          wins: tournament.wins,
+          losses: tournament.losses,
+          draws: tournament.draws,
+          entries: tournament.entries,
+          colors: tournament.colors,
+          partner: tournament.partner,
+        }))
+        const filterData = data.filter((tournament: CommanderRankingResponse) => {
+          const matchesColors = !colors || colors.every((color) => tournament.colors.includes(color));
+          // const matchesCmc = !cmc || tournament.cmc === cmc;
+          const matchesPlayerName = !playerName || tournament.username?.toLowerCase().includes(playerName.toLowerCase());
+          // const matchesDateRange = !dataRane || (tournament.start_date >= dataRane.start && tournament.end_date <= dataRane.end);
+          const matchesSelectedTournaments = !selectedTournaments || selectedTournaments.includes(tournament.id);
+          const matchesTitle = !title || tournament.name?.toLowerCase().includes(title.toLowerCase());
+          const matchesCommander = !commander || tournament.commander?.toLowerCase().includes(commander.toLowerCase());
+          const matchesPartner = !partner || tournament.partner?.toLowerCase().includes(partner.toLowerCase());
+
+          return (
+            matchesColors &&
+            // matchesCmc &&
+            matchesPlayerName &&
+            // matchesDateRange &&
+            matchesSelectedTournaments &&
+            matchesTitle &&
+            matchesCommander &&
+            matchesPartner
+          );
+        });
+        setCommanderRanking(data);
       })
       .catch((error) => {
         console.error("Erro ao carregar dados de torneios:", error);

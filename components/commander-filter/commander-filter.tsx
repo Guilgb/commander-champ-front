@@ -17,26 +17,9 @@ import { Badge } from "@/components/ui/badge"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/service/api"
+import { ScryfallCard, ScryfallResponse } from "./types"
 
-interface ScryfallCard {
-  name: string
-  image_uris?: {
-    small: string
-  }
-  card_faces?: Array<{
-    name: string
-    image_uris?: {
-      small: string
-    }
-  }>
-  type_line?: string
-  oracle_text?: string
-}
 
-interface ScryfallResponse {
-  data: ScryfallCard[]
-  has_more: boolean
-}
 
 export function CommanderFilter() {
   const [name, setName] = useState("")
@@ -49,7 +32,6 @@ export function CommanderFilter() {
   const [tournamentsOpen, setTournamentsOpen] = useState(false)
   const [titleFilter, setTitleFilter] = useState("all")
 
-  // Novos estados para comandante e parceiro
   const [commander, setCommander] = useState("")
   const [partner, setPartner] = useState("")
   const [commanderSuggestions, setCommanderSuggestions] = useState<ScryfallCard[]>([])

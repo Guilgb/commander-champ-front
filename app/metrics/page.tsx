@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CommanderFilter } from "@/components/commander-filter"
-import { CardFilter } from "@/components/card-filter"
+import { CommanderFilter } from "@/components/commander-filter/commander-filter"
+import { CardFilter } from "@/components/card-filter/card-filter"
 import { CommanderWinrateChart } from "@/components/commander-winrate-chart/commander-winrate-chart"
 import { PopularCardsChart } from "@/components/popular-cards-chart/popular-cards-chart"
 import { TopPercentageChart } from "@/components/top-percentage-chart"
@@ -20,8 +20,8 @@ export default function MetricsPage() {
           <TabsTrigger value="cards">Cards</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="commanders" className="space-y-8">
-          <CommanderFiltersProvider>
+        <CommanderFiltersProvider>
+          <TabsContent value="commanders" className="space-y-8">
             <CommanderFilter />
 
             <div className="space-y-8">
@@ -30,17 +30,17 @@ export default function MetricsPage() {
             </div>
 
             <CommanderRanking />
-          </CommanderFiltersProvider>
-        </TabsContent>
+          </TabsContent>
+        </CommanderFiltersProvider>
 
-        <TabsContent value="cards" className="space-y-8">
-          <CardFiltersProvider>
+        <CardFiltersProvider>
+          <TabsContent value="cards" className="space-y-8">
             <CardFilter />
             <PopularCardsChart />
             <CardRanking />
-          </CardFiltersProvider>
-        </TabsContent>
+          </TabsContent>
+        </CardFiltersProvider>
       </Tabs>
-    </div>
+    </div >
   )
 }

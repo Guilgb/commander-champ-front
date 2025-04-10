@@ -256,4 +256,3 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
     </Dialog>
   )
 }
-

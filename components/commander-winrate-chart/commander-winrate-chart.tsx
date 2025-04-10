@@ -37,7 +37,6 @@ export function CommanderWinrateChart() {
   const [selectedCommander, setSelectedCommander] = useState<string | null>(null)
 
   useEffect(() => {
-    // e então buscaria os dados dos cards do Scryfall
 
     async function fetchCardData() {
       setLoading(true)

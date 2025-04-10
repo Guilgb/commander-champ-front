@@ -6,9 +6,13 @@ import { createContext, useContext, useState, type ReactNode } from "react"
 // Tipos para os filtros de comandante
 export interface CommanderFilters {
   colors: string[]
-  powerLevel: [number, number]
-  timeFrame: string
-  format: string
+  cmc: number[]
+  playerName: string
+  dataRane: string
+  selectedTournaments: string[]
+  title: string
+  commander: string
+  partner: string
 }
 
 // Tipos para os filtros de carta
@@ -27,11 +31,15 @@ const CommanderFiltersContext = createContext<{
 }>({
   filters: {
     colors: [],
-    powerLevel: [1, 10],
-    timeFrame: "all",
-    format: "all",
+    cmc: [1, 20],
+    playerName: "all",
+    dataRane: "all",
+    selectedTournaments: [],
+    title: "all",
+    commander: "all",
+    partner: "all",
   },
-  setFilters: () => {},
+  setFilters: () => { },
 })
 
 // Contexto para filtros de carta
@@ -46,16 +54,20 @@ const CardFiltersContext = createContext<{
     timeFrame: "all",
     format: "all",
   },
-  setFilters: () => {},
+  setFilters: () => { },
 })
 
 // Provider para filtros de comandante
 export function CommanderFiltersProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<CommanderFilters>({
     colors: [],
-    powerLevel: [1, 10],
-    timeFrame: "all",
-    format: "all",
+    cmc: [1, 20],
+    playerName: "all",
+    dataRane: "all",
+    selectedTournaments: [],
+    title: "all",
+    commander: "all",
+    partner: "all",
   })
 
   return <CommanderFiltersContext.Provider value={{ filters, setFilters }}>{children}</CommanderFiltersContext.Provider>
