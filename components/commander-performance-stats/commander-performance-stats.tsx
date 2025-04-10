@@ -44,7 +44,17 @@ export function CommanderPerformanceStats() {
       try {
         const response = await api.post("/decks/statistics")
         const data = await response.data
-        setcommanderPerformanceData(data)
+
+        const filteredData = data
+          .filter((commander: CommanderPerformaceResponse) => commander.entries > 0)
+          .map((commander: CommanderPerformaceResponse) => ({
+            ...commander,
+            winrate: (commander.champion / commander.entries) * 100,
+          }))
+          .sort((a: CommanderPerformaceResponse, b: CommanderPerformaceResponse) => b.winrate - a.winrate)
+          .slice(0, 10);
+
+        setcommanderPerformanceData(filteredData)
       } catch (error) {
         console.error("Error fetching commander performance data:", error)
       } finally {
@@ -100,7 +110,6 @@ export function CommanderPerformanceStats() {
     }
   })
 
-  // Função para renderizar o rótulo do eixo Y com imagens
   const renderCustomAxisTick = (props: any) => {
     const { x, y, payload } = props
     const commanderName = payload.value
@@ -123,13 +132,13 @@ export function CommanderPerformanceStats() {
   }
 
   const top10Commanders = commanderPerformanceData
-    .filter((commander) => commander.entries > 0) 
+    .filter((commander) => commander.entries > 0)
     .map((commander) => ({
       ...commander,
-      winrate: (commander.champion / commander.entries) * 100, 
+      winrate: (commander.champion / commander.entries) * 100,
     }))
-    .sort((a, b) => b.winrate - a.winrate) 
-    .slice(0, 10) 
+    .sort((a, b) => b.winrate - a.winrate)
+    .slice(0, 10)
 
 
   return (

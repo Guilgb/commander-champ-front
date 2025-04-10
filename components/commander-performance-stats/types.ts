@@ -6,4 +6,5 @@ export type CommanderPerformaceResponse = {
   top4: number
   champion: number
   colors: string
+  winrate: number
 }

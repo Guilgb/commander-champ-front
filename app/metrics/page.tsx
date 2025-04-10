@@ -25,7 +25,7 @@ export default function MetricsPage() {
             <CommanderFilter />
 
             <div className="space-y-8">
-              <TopPercentageChart />
+              {/* <TopPercentageChart /> */}
               <CommanderPerformanceStats />
             </div>
 
