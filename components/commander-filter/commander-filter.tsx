@@ -18,6 +18,7 @@ import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/service/api"
 import { ScryfallCard, ScryfallResponse } from "./types"
+import { useCommanderFilters } from "@/app/contexts/filters-context"
 
 
 
@@ -31,7 +32,6 @@ export function CommanderFilter() {
   const [selectedTournaments, setSelectedTournaments] = useState<string[]>([])
   const [tournamentsOpen, setTournamentsOpen] = useState(false)
   const [titleFilter, setTitleFilter] = useState("all")
-
   const [commander, setCommander] = useState("")
   const [partner, setPartner] = useState("")
   const [commanderSuggestions, setCommanderSuggestions] = useState<ScryfallCard[]>([])
@@ -40,13 +40,12 @@ export function CommanderFilter() {
   const [isLoadingPartner, setIsLoadingPartner] = useState(false)
   const [showCommanderSuggestions, setShowCommanderSuggestions] = useState(false)
   const [showPartnerSuggestions, setShowPartnerSuggestions] = useState(false)
-
   const commanderInputRef = useRef<HTMLInputElement>(null)
   const partnerInputRef = useRef<HTMLInputElement>(null)
   const commanderSuggestionsRef = useRef<HTMLDivElement>(null)
   const partnerSuggestionsRef = useRef<HTMLDivElement>(null)
-
   const [tournaments, setTournaments] = useState<{ id: string; name: string; date: string }[]>([]);
+  const { filters, setFilters } = useCommanderFilters()
 
   useEffect(() => {
     api.get(`/tournaments/list`)
@@ -84,6 +83,19 @@ export function CommanderFilter() {
     setSelectedTournaments((prev) =>
       prev.includes(tournamentId) ? prev.filter((id) => id !== tournamentId) : [...prev, tournamentId],
     )
+  }
+
+  const handleSetFilters = () => {
+    setFilters({
+      colors,
+      cmc,
+      playerName,
+      selectedTournaments,
+      title: titleFilter,
+      commander,
+      partner,
+      dataRane: '',
+    })
   }
 
   // Função para buscar comandantes da API do Scryfall
@@ -531,7 +543,7 @@ export function CommanderFilter() {
         </div>
 
         <div className="flex items-end space-x-2">
-          <Button className="flex-1">Aplicar Filtros</Button>
+          <Button className="flex-1" onClick={handleSetFilters}>Aplicar Filtros</Button>
           <Button variant="outline" onClick={handleReset}>
             Limpar
           </Button>

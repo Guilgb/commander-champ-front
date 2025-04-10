@@ -77,7 +77,7 @@ export function PopularCardsChart() {
     }
 
     fetchCardData()
-  }, [data])
+  }, [])
 
   // Função para renderizar o rótulo do eixo Y com imagens
   const renderCustomAxisTick = (props: any) => {

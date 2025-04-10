@@ -52,7 +52,7 @@ export function CommanderPerformanceStats() {
       }
     }
     fetchCommanderPerformanceData()
-  });
+  }, []);
 
   useEffect(() => {
     if (commanderPerformanceData.length === 0) return;
