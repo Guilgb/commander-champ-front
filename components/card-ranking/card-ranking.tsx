@@ -14,6 +14,7 @@ import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCardFilters } from "@/app/contexts/filters-context"
 
 export function CardRanking() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -28,6 +29,7 @@ export function CardRanking() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [selectedCardData, setSelectedCardData] = useState<ScryfallCard | null>(null)
+  const { filters, setFilters } = useCardFilters()
 
 
   // Buscar dados dos cards quando o componente for montado
@@ -41,7 +43,7 @@ export function CardRanking() {
       })
 
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
-
+      const { cardType, colors, format } = filters
       const filteredCards = mostUsedCards.data.filter(
         (card) =>
           (card.type !== "Land" || card.name === "Arcane Signet") &&
@@ -57,7 +59,7 @@ export function CardRanking() {
     }
 
     fetchCardData()
-  }, [])
+  }, [filters])
 
   const handleCardSelection = async (cardName: string) => {
     setSelectedCard(cardName)

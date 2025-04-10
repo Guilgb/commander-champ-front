@@ -31,7 +31,7 @@ export function CommanderRanking() {
   const [maxWinrate, setMaxWinrate] = useState(100)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const { filters, setFilters } = useCommanderFilters()
+  const { filters } = useCommanderFilters()
 
   useEffect(() => {
 
@@ -53,10 +53,13 @@ export function CommanderRanking() {
           colors: tournament.colors,
           partner: tournament.partner,
         }))
+
         const filterData = data.filter((tournament: CommanderRankingResponse) => {
-          const matchesColors = !colors || colors.every((color) => tournament.colors.includes(color));
-          // const matchesCmc = !cmc || tournament.cmc === cmc;
-          const matchesPlayerName = !playerName || tournament.username?.toLowerCase().includes(playerName.toLowerCase());
+            const matchesColors = colors && colors.length > 0 
+              ? colors.every((color) => tournament.colors.split("").sort().join("").includes(color)) && tournament.colors.split("").sort().join("") === colors.sort().join("")
+              : true;
+          // // const matchesCmc = !cmc || tournament.cmc === cmc;
+            const matchesPlayerName = !playerName || tournament.username?.toLowerCase().includes(playerName.toLowerCase());
           // const matchesDateRange = !dataRane || (tournament.start_date >= dataRane.start && tournament.end_date <= dataRane.end);
           const matchesSelectedTournaments = !selectedTournaments || selectedTournaments.includes(tournament.id);
           const matchesTitle = !title || tournament.name?.toLowerCase().includes(title.toLowerCase());
@@ -67,19 +70,19 @@ export function CommanderRanking() {
             matchesColors &&
             // matchesCmc &&
             matchesPlayerName &&
-            // matchesDateRange &&
+            // // matchesDateRange &&
             matchesSelectedTournaments &&
             matchesTitle &&
             matchesCommander &&
             matchesPartner
           );
         });
-        setCommanderRanking(data);
+        setCommanderRanking(filterData);
       })
       .catch((error) => {
         console.error("Erro ao carregar dados de torneios:", error);
       });
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     if (commanderRankingData.length === 0) return;
@@ -107,7 +110,6 @@ export function CommanderRanking() {
     fetchCardData();
   }, [commanderRankingData]);
 
-  // Filter commanders based on search term
   const filteredCommanders = commanderRankingData.filter(
     (commander) =>
       commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -115,7 +117,6 @@ export function CommanderRanking() {
       commander.winrate <= maxWinrate,
   )
 
-  // Sort commanders based on selected criteria
   const sortedCommanders = [...filteredCommanders].sort((a, b) => {
     let comparison = 0
 

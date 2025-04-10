@@ -64,7 +64,7 @@ export function CommanderFilter() {
       .catch((error) => {
         console.error("Erro ao carregar dados de torneios:", error);
       });
-  }, []);
+  }, [filters]);
 
   const handleReset = () => {
     setName("")
@@ -108,14 +108,12 @@ export function CommanderFilter() {
     isPartner ? setIsLoadingPartner(true) : setIsLoadingCommander(true)
 
     try {
-      // Buscar cards que são comandantes (legendary creatures ou planeswalkers com "can be your commander")
       const query = `${searchTerm} (t:legendary t:creature OR o:"can be your commander")`
       const response = await fetch(
         `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=name&unique=cards`,
       )
 
       if (response.status === 404) {
-        // Scryfall retorna 404 quando não encontra resultados
         isPartner ? setPartnerSuggestions([]) : setCommanderSuggestions([])
         return
       }
