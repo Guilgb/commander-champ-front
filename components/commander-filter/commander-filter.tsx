@@ -374,32 +374,80 @@ export function CommanderFilter() {
 
         <div className="space-y-2">
           <Label htmlFor="commander-colors">Cores</Label>
-          <Select value={colors.join("")} onValueChange={(value) => setColors(value.split(""))}>
-            <SelectTrigger id="commander-colors">
-              <SelectValue placeholder="Selecionar cores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as cores</SelectItem>
-              <SelectItem value="W">Branco (W)</SelectItem>
-              <SelectItem value="U">Azul (U)</SelectItem>
-              <SelectItem value="B">Preto (B)</SelectItem>
-              <SelectItem value="R">Vermelho (R)</SelectItem>
-              <SelectItem value="G">Verde (G)</SelectItem>
-              <SelectItem value="WU">Azorius (WU)</SelectItem>
-              <SelectItem value="WB">Orzhov (WB)</SelectItem>
-              <SelectItem value="UB">Dimir (UB)</SelectItem>
-              <SelectItem value="UR">Izzet (UR)</SelectItem>
-              <SelectItem value="BR">Rakdos (BR)</SelectItem>
-              <SelectItem value="BG">Golgari (BG)</SelectItem>
-              <SelectItem value="RG">Gruul (RG)</SelectItem>
-              <SelectItem value="WG">Selesnya (WG)</SelectItem>
-              <SelectItem value="WR">Boros (WR)</SelectItem>
-              <SelectItem value="UG">Simic (UG)</SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+          <span>
+            {colors.length > 0
+              ? colors
+            .map((color) => {
+              switch (color) {
+                case "W":
+                  return "Branco";
+                case "U":
+                  return "Azul";
+                case "B":
+                  return "Preto";
+                case "R":
+                  return "Vermelho";
+                case "G":
+                  return "Verde";
+                default:
+                  return color;
+              }
+            })
+            .join(", ")
+              : "Selecionar cores"}
+          </span>
+          {colors.length > 0 ? (
+            <X
+              className="h-4 w-4 text-muted-foreground hover:text-foreground"
+              onClick={(e) => {
+                e.stopPropagation();
+                setColors([]);
+              }}
+            />
+          ) : (
+            <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+          )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+              <Command>
+          <CommandInput placeholder="Buscar cor..." />
+          <CommandList>
+            <CommandEmpty>Nenhuma cor encontrada.</CommandEmpty>
+            <CommandGroup>
+              {[
+                { label: "Branco (W)", value: "W" },
+                { label: "Azul (U)", value: "U" },
+                { label: "Preto (B)", value: "B" },
+                { label: "Vermelho (R)", value: "R" },
+                { label: "Verde (G)", value: "G" },
+              ].map((color) => (
+                <CommandItem
+            key={color.value}
+            onSelect={() =>
+              setColors((prev) =>
+                prev.includes(color.value)
+                  ? prev.filter((c) => c !== color.value)
+                  : [...prev, color.value]
+              )
+            }
+            className="flex items-center justify-between"
+                >
+            <span>{color.label}</span>
+            {colors.includes(color.value) && <Check className="h-4 w-4" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="commander-type">Tipo</Label>
           <Select value={type} onValueChange={setType}>
             <SelectTrigger id="commander-type">
@@ -411,7 +459,7 @@ export function CommanderFilter() {
               <SelectItem value="planeswalker">Planeswalker</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label>Custo de Mana (CMC)</Label>

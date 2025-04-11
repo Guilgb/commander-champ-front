@@ -10,6 +10,7 @@ import { use, useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CommanderPerformaceResponse } from "./types"
 import api from "@/service/api"
+import { useCommanderFilters } from "@/app/contexts/filters-context"
 
 
 // Componente personalizado para o tooltip
@@ -38,22 +39,33 @@ export function CommanderPerformanceStats() {
   const [statType, setStatType] = useState<"absolute" | "percentage">("absolute")
   const [commanderPerformanceData, setcommanderPerformanceData] = useState<CommanderPerformaceResponse[]>([])
 
+  const { filters } = useCommanderFilters()
   useEffect(() => {
     async function fetchCommanderPerformanceData() {
       setLoading(true)
       try {
         const response = await api.post("/decks/statistics")
         const data = await response.data
-
-        const filteredData = data
-          .filter((commander: CommanderPerformaceResponse) => commander.entries > 0)
-          .map((commander: CommanderPerformaceResponse) => ({
-            ...commander,
-            winrate: (commander.champion / commander.entries) * 100,
-          }))
-          .sort((a: CommanderPerformaceResponse, b: CommanderPerformaceResponse) => b.winrate - a.winrate)
-          .slice(0, 10);
-
+        const { cmc, colors, commander, dataRane, partner, playerName, selectedTournaments, title} = filters
+        const filteredData = []
+        for (const item of data) {
+          console.log(item)
+          const { commander: commanderName, entries, top8, top4, champion } = item
+          const isValid = (
+            (cmc.length === 0 || cmc.includes(item.cmc)) &&
+            (colors.length === 0 || colors.some(color => item.colors.includes(color))) &&
+            (commander === "all" || commanderName === commander) &&
+            (dataRane === "all" || item.dataRane === dataRane) &&
+            (partner === "all" || item.partner === partner) &&
+            (playerName === "all" || item.playerName.toLowerCase().includes(playerName.toLowerCase())) &&
+            (selectedTournaments.length === 0 || selectedTournaments.includes(item.tournament)) &&
+            (title === "all" || item.title.toLowerCase().includes(title.toLowerCase()))
+          )
+          if (isValid) {
+            filteredData.push(item)
+          }
+        }
+        console.log("Filtered Data:", filteredData)
         setcommanderPerformanceData(filteredData)
       } catch (error) {
         console.error("Error fetching commander performance data:", error)
@@ -62,7 +74,7 @@ export function CommanderPerformanceStats() {
       }
     }
     fetchCommanderPerformanceData()
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     if (commanderPerformanceData.length === 0) return;
