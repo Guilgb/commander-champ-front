@@ -31,11 +31,8 @@ export function CommanderRanking() {
   const [maxWinrate, setMaxWinrate] = useState(100)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const { filters } = useCommanderFilters()
 
   useEffect(() => {
-
-    const { colors, playerName, dataRane, selectedTournaments, title, commander, partner } = filters
     api.post(`/decks/statistics/commander-winrate`)
       .then((response) => {
         if (response.status !== 201) {
@@ -53,36 +50,12 @@ export function CommanderRanking() {
           colors: tournament.colors,
           partner: tournament.partner,
         }))
-
-        const filterData = data.filter((tournament: CommanderRankingResponse) => {
-            const matchesColors = colors && colors.length > 0 
-              ? colors.every((color) => tournament.colors.split("").sort().join("").includes(color)) && tournament.colors.split("").sort().join("") === colors.sort().join("")
-              : true;
-          // // const matchesCmc = !cmc || tournament.cmc === cmc;
-            const matchesPlayerName = !playerName || tournament.username?.toLowerCase().includes(playerName.toLowerCase());
-          // const matchesDateRange = !dataRane || (tournament.start_date >= dataRane.start && tournament.end_date <= dataRane.end);
-          const matchesSelectedTournaments = !selectedTournaments || selectedTournaments.includes(tournament.id);
-          const matchesTitle = !title || tournament.name?.toLowerCase().includes(title.toLowerCase());
-          const matchesCommander = !commander || tournament.commander?.toLowerCase().includes(commander.toLowerCase());
-          const matchesPartner = !partner || tournament.partner?.toLowerCase().includes(partner.toLowerCase());
-
-          return (
-            matchesColors &&
-            // matchesCmc &&
-            matchesPlayerName &&
-            // // matchesDateRange &&
-            matchesSelectedTournaments &&
-            matchesTitle &&
-            matchesCommander &&
-            matchesPartner
-          );
-        });
-        setCommanderRanking(filterData);
+        setCommanderRanking(data);
       })
       .catch((error) => {
         console.error("Erro ao carregar dados de torneios:", error);
       });
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
     if (commanderRankingData.length === 0) return;
