@@ -46,27 +46,27 @@ export function CommanderPerformanceStats() {
       try {
         const response = await api.post("/decks/statistics")
         const data = await response.data
-        const { cmc, colors, commander, dataRane, partner, playerName, selectedTournaments, title} = filters
+        const { cmc, colors, commander, dataRane, partner, playerName, selectedTournaments, title } = filters
         const filteredData = []
         for (const item of data) {
-          console.log(item)
           const { commander: commanderName, entries, top8, top4, champion } = item
           const isValid = (
-            (cmc.length === 0 || cmc.includes(item.cmc)) &&
-            (colors.length === 0 || colors.some(color => item.colors.includes(color))) &&
+            // (cmc.length === 0 || cmc.includes(item.cmc)) &&
+            (colors.length === 0 || (colors.length === item.colors.length && colors.every(color => item.colors.includes(color)))) &&
             (commander === "all" || commanderName === commander) &&
-            (dataRane === "all" || item.dataRane === dataRane) &&
-            (partner === "all" || item.partner === partner) &&
-            (playerName === "all" || item.playerName.toLowerCase().includes(playerName.toLowerCase())) &&
-            (selectedTournaments.length === 0 || selectedTournaments.includes(item.tournament)) &&
-            (title === "all" || item.title.toLowerCase().includes(title.toLowerCase()))
+            // (dataRane === "all" || item.dataRane === dataRane) &&
+            (partner === "all" || item.partner === partner)
+            // (playerName === "all" || item.playerName.toLowerCase().includes(playerName.toLowerCase())) &&
+            // (selectedTournaments.length === 0 || selectedTournaments.includes(item.tournament))
+            // (title === "all" || item.title.toLowerCase().includes(title.toLowerCase()))
           )
           if (isValid) {
             filteredData.push(item)
           }
         }
-        console.log("Filtered Data:", filteredData)
-        setcommanderPerformanceData(filteredData)
+        filteredData.sort((a, b) => (b.champion / b.entries) - (a.champion / a.entries));
+        const top10FilteredData = filteredData.slice(0, 10);
+        setcommanderPerformanceData(top10FilteredData)
       } catch (error) {
         console.error("Error fetching commander performance data:", error)
       } finally {
