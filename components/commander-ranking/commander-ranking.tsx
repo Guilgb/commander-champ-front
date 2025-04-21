@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from "lucide-react"
-import { CommanderDetails } from "@/components/commander-details"
+import { CommanderDetails } from "@/components/commander-details/commander-details"
 import { CommanderRankingResponse } from "./types"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"

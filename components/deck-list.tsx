@@ -92,18 +92,6 @@ export function DeckList({ cards }: DeckListProps) {
             className="pl-8"
           />
         </div>
-
-        <div className="flex-shrink-0">
-          <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-            <TabsList className="grid grid-flow-col auto-cols-fr">
-              {categories.map((category) => (
-                <TabsTrigger key={category} value={category} className="text-xs">
-                  {category.charAt(0).toUpperCase() + category.slice(1)} ({categoryCounts[category] || 0})
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">

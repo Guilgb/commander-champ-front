@@ -9,9 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DeckList } from "@/components/deck-list"
 import { ChevronDown, ChevronUp, Clock, Trophy, Calendar, Sparkles, ArrowUpDown } from "lucide-react"
+import api from "@/service/api"
+import { CommanderDeck } from "./types"
 
 interface CommanderDetailsProps {
   commanderName: string
@@ -25,137 +27,6 @@ interface CommanderDetailsProps {
   }
 }
 
-// Mock data para as listas de decks
-const mockDeckLists = [
-  {
-    id: "deck1",
-    name: "Tribal Dinossauros",
-    commander: "Gishath, Sun's Avatar",
-    owner: {
-      id: "user1",
-      name: "João Silva",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    winrate: 78,
-    wins: 14,
-    losses: 4,
-    draws: 0,
-    tournaments: 5,
-    lastUpdated: "2023-04-15",
-    price: 480,
-    tags: ["Tribal", "Agressivo", "Midrange"],
-    description: "Deck focado em dinossauros com rampagem agressiva e combate.",
-    cards: [
-      { name: "Gishath, Sun's Avatar", quantity: 1, category: "Commander" },
-      { name: "Cultivate", quantity: 1, category: "Ramp" },
-      { name: "Farseek", quantity: 1, category: "Ramp" },
-      { name: "Rampant Growth", quantity: 1, category: "Ramp" },
-      { name: "Regisaur Alpha", quantity: 1, category: "Creature" },
-      { name: "Ripjaw Raptor", quantity: 1, category: "Creature" },
-      { name: "Thunderherd Migration", quantity: 1, category: "Ramp" },
-      { name: "Ranging Raptors", quantity: 1, category: "Creature" },
-      { name: "Savage Stomp", quantity: 1, category: "Removal" },
-      { name: "Commune with Dinosaurs", quantity: 1, category: "Card Draw" },
-      // ... mais cards
-    ],
-  },
-  {
-    id: "deck2",
-    name: "Ramp & Stomp",
-    commander: "Gishath, Sun's Avatar",
-    owner: {
-      id: "user2",
-      name: "Maria Souza",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    winrate: 65,
-    wins: 13,
-    losses: 7,
-    draws: 0,
-    tournaments: 4,
-    lastUpdated: "2023-03-20",
-    price: 350,
-    tags: ["Budget", "Midrange", "Combo"],
-    description: "Versão budget com foco em aceleração de mana e criaturas grandes.",
-    cards: [
-      { name: "Gishath, Sun's Avatar", quantity: 1, category: "Commander" },
-      { name: "Cultivate", quantity: 1, category: "Ramp" },
-      { name: "Kodama's Reach", quantity: 1, category: "Ramp" },
-      { name: "Rampant Growth", quantity: 1, category: "Ramp" },
-      { name: "Polyraptor", quantity: 1, category: "Creature" },
-      { name: "Forerunner of the Empire", quantity: 1, category: "Creature" },
-      { name: "Ranging Raptors", quantity: 1, category: "Creature" },
-      { name: "Kinjalli's Sunwing", quantity: 1, category: "Creature" },
-      { name: "Otepec Huntmaster", quantity: 1, category: "Creature" },
-      { name: "Commune with Dinosaurs", quantity: 1, category: "Card Draw" },
-      // ... mais cards
-    ],
-  },
-  {
-    id: "deck3",
-    name: "Dino Control",
-    commander: "Gishath, Sun's Avatar",
-    owner: {
-      id: "user3",
-      name: "Pedro Alves",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    winrate: 58,
-    wins: 7,
-    losses: 5,
-    draws: 0,
-    tournaments: 3,
-    lastUpdated: "2023-02-10",
-    price: 420,
-    tags: ["Control", "Midrange", "Value"],
-    description: "Deck de controle que usa dinossauros como finalizadores após estabilizar o jogo.",
-    cards: [
-      { name: "Gishath, Sun's Avatar", quantity: 1, category: "Commander" },
-      { name: "Swords to Plowshares", quantity: 1, category: "Removal" },
-      { name: "Path to Exile", quantity: 1, category: "Removal" },
-      { name: "Wrath of God", quantity: 1, category: "Board Wipe" },
-      { name: "Zacama, Primal Calamity", quantity: 1, category: "Creature" },
-      { name: "Goring Ceratops", quantity: 1, category: "Creature" },
-      { name: "Trapjaw Tyrant", quantity: 1, category: "Creature" },
-      { name: "Runic Armasaur", quantity: 1, category: "Creature" },
-      { name: "Pyrohemia", quantity: 1, category: "Board Control" },
-      { name: "Rishkar's Expertise", quantity: 1, category: "Card Draw" },
-      // ... mais cards
-    ],
-  },
-  {
-    id: "deck4",
-    name: "Enrage Combo",
-    commander: "Gishath, Sun's Avatar",
-    owner: {
-      id: "user4",
-      name: "Ana Costa",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    winrate: 52,
-    wins: 11,
-    losses: 10,
-    draws: 0,
-    tournaments: 6,
-    lastUpdated: "2023-01-05",
-    price: 390,
-    tags: ["Combo", "Enrage", "Value"],
-    description: "Deck focado em abusar das habilidades de enrage dos dinossauros para gerar valor.",
-    cards: [
-      { name: "Gishath, Sun's Avatar", quantity: 1, category: "Commander" },
-      { name: "Polyraptor", quantity: 1, category: "Creature" },
-      { name: "Forerunner of the Empire", quantity: 1, category: "Creature" },
-      { name: "Ripjaw Raptor", quantity: 1, category: "Creature" },
-      { name: "Ranging Raptors", quantity: 1, category: "Creature" },
-      { name: "Trapjaw Tyrant", quantity: 1, category: "Creature" },
-      { name: "Pyrohemia", quantity: 1, category: "Board Control" },
-      { name: "Aether Flash", quantity: 1, category: "Board Control" },
-      { name: "Bellowing Aegisaur", quantity: 1, category: "Creature" },
-      { name: "Silverclad Ferocidons", quantity: 1, category: "Creature" },
-      // ... mais cards
-    ],
-  },
-]
 
 export function CommanderDetails({ commanderName, cardData, onClose, winrateData }: CommanderDetailsProps) {
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null)
@@ -164,9 +35,17 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
   if (!cardData) {
     return null
   }
+  const [commanderDecks, setCommanderDecks] = useState<CommanderDeck[]>([])
 
-  // Filtrar decks para o comandante atual
-  const commanderDecks = mockDeckLists.filter((deck) => deck.commander === commanderName)
+  useEffect(() => {
+    const fetchDecks = async () => {
+      const response = await api.post<CommanderDeck[]>('/decks/commander', {
+        "commander_name": commanderName,
+      })
+      setCommanderDecks(response.data.filter((deck) => deck.commander === commanderName))
+    }
+    fetchDecks()
+  }, [commanderName])
 
   // Ordenar decks com base na opção selecionada
   const sortedDecks = [...commanderDecks].sort((a, b) => {
@@ -418,7 +297,6 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline">R${deck.price}</Badge>
-                              <Badge variant="outline">{deck.tournaments} torneios</Badge>
                             </div>
                           </div>
                           <CardDescription className="flex items-center gap-2 mt-1">
@@ -438,13 +316,13 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
                           <p className="text-sm">{deck.description}</p>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          {/* <div className="flex flex-wrap gap-2 mt-2">
                             {deck.tags.map((tag) => (
                               <Badge key={tag} variant="outline">
                                 {tag}
                               </Badge>
                             ))}
-                          </div>
+                          </div> */}
 
                           <div className="grid grid-cols-3 gap-2 mt-4 text-center text-sm">
                             <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-md">
@@ -456,8 +334,8 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                               <p className="text-xs text-muted-foreground">Derrotas</p>
                             </div>
                             <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-md">
-                              <p className="font-bold text-blue-600 dark:text-blue-400">{deck.tournaments}</p>
-                              <p className="text-xs text-muted-foreground">Torneios</p>
+                              <p className="font-bold text-blue-600 dark:text-blue-400">{deck.draws}</p>
+                              <p className="text-xs text-muted-foreground">Empates</p>
                             </div>
                           </div>
                         </CardContent>

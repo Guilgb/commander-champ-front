@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
-import { CommanderDetails } from "@/components/commander-details"
+import { CommanderDetails } from "@/components/commander-details/commander-details"
 import { CommanderRankingResponse, CommanderWinrateData } from "./types"
 import api from "@/service/api"
 
@@ -58,7 +58,7 @@ export function CommanderWinrateChart() {
             partner: tournament.partner,
           }))
 
-            const top10Data: CommanderRankingResponse[] = data
+          const top10Data: CommanderRankingResponse[] = data
             .sort((a: CommanderRankingResponse, b: CommanderRankingResponse) => b.winrate - a.winrate)
             .slice(0, 10);
           setData(top10Data);
