@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/lib/auth"
 import { ArrowLeft, Calendar, Edit } from "lucide-react"
 import Link from "next/link"
-import { ArticleComments } from "@/components/article-comments"
+import { ArticleComments } from "@/components/article-comments/article-comments"
 import api from "@/service/api"
 
 const articlesApi = await api.get(`/articles`)

@@ -9,21 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
+import { ArticleCommentsProps, Comment } from "./types"
 
-interface Comment {
-  id: string
-  author: {
-    name: string
-    avatar: string
-  }
-  date: string
-  content: string
-}
-
-interface ArticleCommentsProps {
-  articleId: string
-  initialComments: Comment[]
-}
 
 export function ArticleComments({ articleId, initialComments }: ArticleCommentsProps) {
   const { isAuthenticated, user } = useAuth()
