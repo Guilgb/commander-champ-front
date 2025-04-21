@@ -65,8 +65,6 @@ export default function ForumTopicPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    // In a real app, fetch the topic data based on params.id
-    console.log(`Fetching topic with ID: ${params.id}`)
   }, [params.id])
 
   const handleSubmitReply = async (e: React.FormEvent) => {

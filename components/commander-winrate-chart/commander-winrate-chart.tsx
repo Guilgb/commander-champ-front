@@ -92,7 +92,6 @@ export function CommanderWinrateChart() {
   const renderCustomAxisTick = (props: any) => {
     const { x, y, payload } = props
     const commanderName = payload.value
-    console.log(commanderName)
     const card = cardData[commanderName]
 
     return (

@@ -45,7 +45,6 @@ export function UserManagement() {
   }
 
   const handleEdit = (user: User) => {
-    console.log(user)
     setEditingUserEmail(user.email)
     setEditedUser({ ...user })
   }

@@ -16,7 +16,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import api from "@/service/api"
 
 const articlesApi = await api.get(`/articles`)
-console.log(articlesApi.data)
 const articles = articlesApi.data
 
 

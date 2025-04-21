@@ -8,6 +8,7 @@ export interface PopularCardData {
 export interface MostUsedCards {
   id: number;
   name: string;
+  colors: string[];
   cmc: number;
   type: string;
   quantity: number;

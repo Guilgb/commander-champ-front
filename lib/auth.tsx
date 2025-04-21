@@ -133,7 +133,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         ? localStorage.getItem("auth_token")
         : Cookies.get("auth_token")
       const tokenCookie = decodeToken(token as string)
-      console.log(tokenCookie)
       const user_roles = await api.post<UserRolesType>(
         "/user-roles/authentication",
         {

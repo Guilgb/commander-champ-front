@@ -83,7 +83,6 @@ export default function CreateArticlePage() {
       views: 1,
       comments: 0,
     }
-    console.log("Dados do artigo:", articleData)
     try {
       const {
         content,
@@ -121,7 +120,6 @@ export default function CreateArticlePage() {
     }
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    console.log("Enviando dados do artigo:", articleData)
 
     setIsSubmitting(false)
     // Limpar o formulário para permitir a criação de um novo artigo

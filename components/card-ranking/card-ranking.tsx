@@ -43,7 +43,6 @@ export function CardRanking() {
       })
 
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
-      const { cardType, colors, cardFormat: format } = filters
       const filteredCards = mostUsedCards.data.filter(
         (card) =>
           (card.type !== "Land" || card.name === "Arcane Signet") &&

@@ -13,7 +13,6 @@ import { ArticleComments } from "@/components/article-comments"
 import api from "@/service/api"
 
 const articlesApi = await api.get(`/articles`)
-console.log(articlesApi.data)
 const articles = articlesApi.data
 
 export default function ArticleDetailPage() {

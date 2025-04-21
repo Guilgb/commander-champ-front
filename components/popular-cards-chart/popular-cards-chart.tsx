@@ -40,18 +40,26 @@ export function PopularCardsChart() {
     async function fetchCardData() {
       setLoading(true)
       const { cardType, colors, cardCmc, cardName } = filters;
+      const colorFilter = colors
       const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
         // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
         // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
       })
       const filteredData = []
       for (const item of mostUsedCards.data) {
-        const { cmc, name, type} = item;
+        const { cmc, name, type, colors } = item;
         const isValid = (
-          (cardName.length === 0 || name.toLowerCase().includes(cardName.toLowerCase())) &&
-          (!cardType || type.toLowerCase().includes(cardType.toLowerCase())) &&
-          (cardCmc.length === 0 || cardCmc.includes(cmc))
-          // (colors.length === 0 || colors.every(color => cardColors.includes(color)))
+          (cardName.length === 0 || !name || name.toLowerCase().includes(cardName.toLowerCase())) &&
+          (cardType.length === 0 || !cardType || type.toLowerCase().includes(cardType.toLowerCase())) &&
+          (cardCmc.length === 0 || !cardCmc || cardCmc.includes(cmc)) &&
+          (
+            colors.length === 0 ||
+            (
+              colors &&
+              colors.length === colorFilter.length &&
+              colorFilter.every(color => item.colors.includes(color))
+            )
+          )
         );
         if (isValid) {
           filteredData.push(item);
@@ -60,12 +68,12 @@ export function PopularCardsChart() {
       console.log(filteredData)
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
 
-
       const top10Cards = filteredData
         .filter(
           (card) =>
             (card.type !== "Land" || card.name === "Arcane Signet") &&
-            !filterList.includes(card.name)
+            !filterList.includes(card.name) &&
+            card.colors.length === colorFilter.length
         )
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 10);
