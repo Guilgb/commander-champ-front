@@ -4,18 +4,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { type ScryfallCard, getCardImageUrl } from "@/lib/scryfall"
+import { getCardImageUrl } from "@/lib/scryfall"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CardDetailsProps } from "./types"
 
-interface CardDetailsProps {
-  cardName: string
-  cardData?: ScryfallCard
-  onClose: () => void
-  popularityData?: {
-    count: number
-    percentage: number
-  }
-}
 
 export function CardDetails({ cardName, cardData, onClose, popularityData }: CardDetailsProps) {
   if (!cardData) {
