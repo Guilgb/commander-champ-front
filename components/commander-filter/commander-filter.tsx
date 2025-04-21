@@ -100,7 +100,7 @@ export function CommanderFilter() {
       title: titleFilter,
       commander,
       partner,
-      dataRane: '',
+      dataRange: '',
     })
   }
 
@@ -377,71 +377,71 @@ export function CommanderFilter() {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-between">
-          <span>
-            {colors.length > 0
-              ? colors
-            .map((color) => {
-              switch (color) {
-                case "W":
-                  return "Branco";
-                case "U":
-                  return "Azul";
-                case "B":
-                  return "Preto";
-                case "R":
-                  return "Vermelho";
-                case "G":
-                  return "Verde";
-                default:
-                  return color;
-              }
-            })
-            .join(", ")
-              : "Selecionar cores"}
-          </span>
-          {colors.length > 0 ? (
-            <X
-              className="h-4 w-4 text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.stopPropagation();
-                setColors([]);
-              }}
-            />
-          ) : (
-            <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-          )}
+                <span>
+                  {colors.length > 0
+                    ? colors
+                      .map((color) => {
+                        switch (color) {
+                          case "W":
+                            return "Branco";
+                          case "U":
+                            return "Azul";
+                          case "B":
+                            return "Preto";
+                          case "R":
+                            return "Vermelho";
+                          case "G":
+                            return "Verde";
+                          default:
+                            return color;
+                        }
+                      })
+                      .join(", ")
+                    : "Selecionar cores"}
+                </span>
+                {colors.length > 0 ? (
+                  <X
+                    className="h-4 w-4 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setColors([]);
+                    }}
+                  />
+                ) : (
+                  <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[300px] p-0" align="start">
               <Command>
-          <CommandInput placeholder="Buscar cor..." />
-          <CommandList>
-            <CommandEmpty>Nenhuma cor encontrada.</CommandEmpty>
-            <CommandGroup>
-              {[
-                { label: "Branco (W)", value: "W" },
-                { label: "Azul (U)", value: "U" },
-                { label: "Preto (B)", value: "B" },
-                { label: "Vermelho (R)", value: "R" },
-                { label: "Verde (G)", value: "G" },
-              ].map((color) => (
-                <CommandItem
-            key={color.value}
-            onSelect={() =>
-              setColors((prev) =>
-                prev.includes(color.value)
-                  ? prev.filter((c) => c !== color.value)
-                  : [...prev, color.value]
-              )
-            }
-            className="flex items-center justify-between"
-                >
-            <span>{color.label}</span>
-            {colors.includes(color.value) && <Check className="h-4 w-4" />}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
+                <CommandInput placeholder="Buscar cor..." />
+                <CommandList>
+                  <CommandEmpty>Nenhuma cor encontrada.</CommandEmpty>
+                  <CommandGroup>
+                    {[
+                      { label: "Branco (W)", value: "W" },
+                      { label: "Azul (U)", value: "U" },
+                      { label: "Preto (B)", value: "B" },
+                      { label: "Vermelho (R)", value: "R" },
+                      { label: "Verde (G)", value: "G" },
+                    ].map((color) => (
+                      <CommandItem
+                        key={color.value}
+                        onSelect={() =>
+                          setColors((prev) =>
+                            prev.includes(color.value)
+                              ? prev.filter((c) => c !== color.value)
+                              : [...prev, color.value]
+                          )
+                        }
+                        className="flex items-center justify-between"
+                      >
+                        <span>{color.label}</span>
+                        {colors.includes(color.value) && <Check className="h-4 w-4" />}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
               </Command>
             </PopoverContent>
           </Popover>

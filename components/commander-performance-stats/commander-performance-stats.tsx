@@ -46,7 +46,7 @@ export function CommanderPerformanceStats() {
       try {
         const response = await api.post("/decks/statistics")
         const data = await response.data
-        const { cmc, colors, commander, dataRane, partner, playerName, selectedTournaments, title } = filters
+        const { cmc, colors, commander, dataRange: dataRane, partner, playerName, selectedTournaments, title } = filters
         const filteredData = []
         for (const item of data) {
           const { commander: commanderName, entries, top8, top4, champion } = item
@@ -58,12 +58,13 @@ export function CommanderPerformanceStats() {
             (partner === "all" || item.partner === partner)
             // (playerName === "all" || item.playerName.toLowerCase().includes(playerName.toLowerCase())) &&
             // (selectedTournaments.length === 0 || selectedTournaments.includes(item.tournament))
-            // (title === "all" || item.title.toLowerCase().includes(title.toLowerCase()))
+            // (title === "all" || (title.toLowerCase() === "top4" ? item.top4 > 0 : title.toLowerCase() === "top8" ? item.top8 > 0 : item.top4.toLowerCase().includes(title.toLowerCase()) || item.top8.toLowerCase().includes(title.toLowerCase())))
           )
           if (isValid) {
             filteredData.push(item)
           }
         }
+
         filteredData.sort((a, b) => (b.champion / b.entries) - (a.champion / a.entries));
         const top10FilteredData = filteredData.slice(0, 10);
         setcommanderPerformanceData(top10FilteredData)

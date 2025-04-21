@@ -10,6 +10,7 @@ import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfal
 import { CardDetails } from "@/components/card-details"
 import { MostUsedCards, PopularCardData } from "./types"
 import api from "@/service/api"
+import { useCardFilters } from "@/app/contexts/filters-context"
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -33,19 +34,34 @@ export function PopularCardsChart() {
   const [loading, setLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
 
+
+  const { filters } = useCardFilters()
   useEffect(() => {
     async function fetchCardData() {
       setLoading(true)
-
+      const { cardType, colors, cardCmc, cardName } = filters;
       const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
         // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
         // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
       })
-
+      const filteredData = []
+      for (const item of mostUsedCards.data) {
+        const { cmc, name, type} = item;
+        const isValid = (
+          (cardName.length === 0 || name.toLowerCase().includes(cardName.toLowerCase())) &&
+          (!cardType || type.toLowerCase().includes(cardType.toLowerCase())) &&
+          (cardCmc.length === 0 || cardCmc.includes(cmc))
+          // (colors.length === 0 || colors.every(color => cardColors.includes(color)))
+        );
+        if (isValid) {
+          filteredData.push(item);
+        }
+      }
+      console.log(filteredData)
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
 
 
-      const top10Cards = mostUsedCards.data
+      const top10Cards = filteredData
         .filter(
           (card) =>
             (card.type !== "Land" || card.name === "Arcane Signet") &&
@@ -55,10 +71,8 @@ export function PopularCardsChart() {
         .slice(0, 10);
 
       setData(top10Cards)
-      // Extrair os nomes dos cards
       const cardNames = top10Cards.map((item) => item.name)
 
-      // Buscar dados dos cards no Scryfall
       const cardDataMap: Record<string, ScryfallCard> = {}
 
       for (const name of cardNames) {
@@ -77,7 +91,7 @@ export function PopularCardsChart() {
     }
 
     fetchCardData()
-  }, [])
+  }, [filters])
 
   // Função para renderizar o rótulo do eixo Y com imagens
   const renderCustomAxisTick = (props: any) => {

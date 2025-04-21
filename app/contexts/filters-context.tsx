@@ -8,7 +8,7 @@ export interface CommanderFilters {
   colors: string[]
   cmc: number[]
   playerName: string
-  dataRane: string
+  dataRange: string
   selectedTournaments: string[]
   title: string
   commander: string
@@ -19,8 +19,8 @@ export interface CommanderFilters {
 export interface CardFilters {
   colors: string[]
   cardType: string
-  rarity: string
-  timeFrame: string
+  cardName: string
+  cardCmc: number[]
   format: string
 }
 
@@ -33,7 +33,7 @@ const CommanderFiltersContext = createContext<{
     colors: [],
     cmc: [1, 20],
     playerName: "all",
-    dataRane: "all",
+    dataRange: "all",
     selectedTournaments: [],
     title: "all",
     commander: "all",
@@ -50,8 +50,8 @@ const CardFiltersContext = createContext<{
   filters: {
     colors: [],
     cardType: "all",
-    rarity: "all",
-    timeFrame: "all",
+    cardName: "all",
+    cardCmc: [1, 20],
     format: "all",
   },
   setFilters: () => { },
@@ -63,7 +63,7 @@ export function CommanderFiltersProvider({ children }: { children: ReactNode }) 
     colors: [],
     cmc: [1, 20],
     playerName: "all",
-    dataRane: "all",
+    dataRange: "all",
     selectedTournaments: [],
     title: "all",
     commander: "all",
@@ -78,8 +78,8 @@ export function CardFiltersProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<CardFilters>({
     colors: [],
     cardType: "all",
-    rarity: "all",
-    timeFrame: "all",
+    cardName: "all",
+    cardCmc: [1, 20],
     format: "all",
   })
 

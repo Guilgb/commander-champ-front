@@ -15,3 +15,9 @@ export interface ScryfallResponse {
   data: ScryfallCard[]
   has_more: boolean
 }
+
+export interface Tournament {
+  id: string
+  name: string
+  date: string
+}
