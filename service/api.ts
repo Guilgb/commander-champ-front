@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.BASE_URL || "http://localhost:5002",
+  baseURL: process.env.BASE_URL,
   headers: {
     "Access-Control-Allow-Origin": "*",
     Accept: "application/json",
