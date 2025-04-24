@@ -120,3 +120,5 @@ export function getCardColor(card: ScryfallCard): string {
   }
 }
 
+console.log('test')
+
