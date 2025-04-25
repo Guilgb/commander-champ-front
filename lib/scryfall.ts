@@ -119,6 +119,3 @@ export function getCardColor(card: ScryfallCard): string {
     return colorMap[card.color_identity[0]] || colorMap.colorless
   }
 }
-
-console.log('test')
-

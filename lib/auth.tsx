@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       )
 
       let role: User["role"] = "USER"
-
+ 
       if (user_roles.data.role === "ADMIN") {
         role = "ADMIN"
       } else if (user_roles.data.role === "EDITOR") {
@@ -156,7 +156,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         role,
       }
-
       setUser(userData)
       localStorage.setItem("user", JSON.stringify(userData))
       setIsLoading(false)
@@ -187,6 +186,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getToken = async (): Promise<string | null> => {
     const token = localStorage.getItem("auth_token")
+      ? localStorage.getItem("auth_token")
+      : Cookies.get("auth_token")
 
     if (!token) return null
 

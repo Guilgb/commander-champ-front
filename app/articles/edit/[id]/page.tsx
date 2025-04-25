@@ -65,7 +65,6 @@ export default function EditArticlePage() {
         tags: foundArticle.tags.join(", "),
       })
     } else {
-      // Article not found, redirect to articles page
       toast({
         title: "Artigo não encontrado",
         description: "O artigo que você está tentando editar não foi encontrado.",

@@ -76,10 +76,9 @@ export default function CreateArticlePage() {
 
     setIsSubmitting(true)
 
-    // Preparar os dados para envio
     const articleData = {
       ...formData,
-      user_id: user?.id || 4, // Usar o ID do usuário autenticado ou o valor padrão
+      user_id: user?.id || 4,
       views: 1,
       comments: 0,
     }

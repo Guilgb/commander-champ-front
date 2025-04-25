@@ -64,9 +64,6 @@ export default function ArticlesPage() {
           <h1 className="text-3xl font-bold">Artigos</h1>
           <p className="text-muted-foreground">Conteúdo exclusivo sobre o formato Commander 500</p>
         </div>
-        <Link href="/articles/create" className="inline-block">
-          <Button>Criar Artigo</Button>
-        </Link>
       </div>
 
       <div className="relative">

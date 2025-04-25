@@ -27,14 +27,15 @@ export default function AdminPage() {
           throw new Error("Failed to authenticate")
         }
         const data = response.data
-        // if (!data.isAuthenticated || data.role !== "ADMIN") {
-        if (data.role !== "ADMIN") {
-          toast({
-            title: "Acesso negado",
-            description: "Você não tem permissão para acessar o painel de administração.",
-            variant: "destructive",
-          })
-          router.push("/")
+        if (!data.isAuthenticated || data.role !== "ADMIN") {
+          if (data.role !== "ADMIN") {
+            toast({
+              title: "Acesso negado",
+              description: "Você não tem permissão para acessar o painel de administração.",
+              variant: "destructive",
+            })
+            router.push("/")
+          }
         }
       } catch (error) {
         toast({
