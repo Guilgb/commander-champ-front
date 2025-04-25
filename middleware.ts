@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = Cookies.get('auth_token') || request.cookies.get('auth_token')?.value
-  
+
   if (!token) {
     const url = new URL('/login', request.url)
     url.searchParams.set('callbackUrl', pathname)
@@ -52,7 +52,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next()
   } catch (error) {
-    // Token inválido, redirecionar para login
+    console.error('Token verification failed:', error)
     const url = new URL('/login', request.url)
     url.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(url)
