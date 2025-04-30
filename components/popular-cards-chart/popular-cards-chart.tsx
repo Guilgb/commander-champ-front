@@ -65,7 +65,6 @@ export function PopularCardsChart() {
           filteredData.push(item);
         }
       }
-      console.log(filteredData)
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
 
       const top10Cards = filteredData
