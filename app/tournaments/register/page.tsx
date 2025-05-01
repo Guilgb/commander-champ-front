@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CardSearch } from "@/components/card-search"
 import { ColorSelector } from "@/components/color-selector"
+import { LoadingOverlay } from "@/components/loading-overlay"
 import api from "@/service/api"
 
 export default function RegisterTournamentPage() {
@@ -286,6 +287,7 @@ export default function RegisterTournamentPage() {
 
   return (
     <div className="space-y-6">
+      {isLoading && <LoadingOverlay message="Salvando dados do torneio..." />}
       <h1 className="text-3xl font-bold">Registrar Resultados de Torneio</h1>
 
       <Card>
@@ -594,9 +596,15 @@ export default function RegisterTournamentPage() {
               />
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSaveTournament} disabled={isLoading}>
+                <Button
+                onClick={() => {
+                  setIsLoading(true)
+                  handleSaveTournament().finally(() => setIsLoading(false))
+                }}
+                disabled={isLoading}
+                >
                 {isLoading ? "Salvando..." : "Salvar Resultados"}
-              </Button>
+                </Button>
             </CardFooter>
           </Card>
         </>
