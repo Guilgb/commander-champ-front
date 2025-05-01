@@ -19,6 +19,10 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import type { DateRange } from "react-day-picker"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { CardSearch } from "@/components/card-search"
+import { ColorSelector } from "@/components/color-selector"
 import api from "@/service/api"
 
 export default function RegisterTournamentPage() {
@@ -26,6 +30,7 @@ export default function RegisterTournamentPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [tournamentLink, setTournamentLink] = useState("")
+  const [tournamentRounds, setTournamentsRounds] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [tournamentData, setTournamentData] = useState<any>(null)
   const [tournamentName, setTournamentName] = useState("")
@@ -34,6 +39,79 @@ export default function RegisterTournamentPage() {
     from: new Date(),
     to: new Date(),
   })
+  const [registrationMode, setRegistrationMode] = useState("topdeck")
+  const [manualPlayers, setManualPlayers] = useState<any[]>([])
+
+  const [newPlayer, setNewPlayer] = useState({
+    name: "",
+    commander: "",
+    partner: "",
+    colors: "",
+    decklist: "",
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    isWinner: false,
+  })
+
+  const addPlayer = () => {
+    if (!newPlayer.name || !newPlayer.commander || !newPlayer.decklist) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome do jogador e comandante são obrigatórios.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setManualPlayers([
+      ...manualPlayers,
+      {
+        id: `p${manualPlayers.length + 1}`,
+        ...newPlayer,
+      },
+    ])
+
+    setNewPlayer({
+      name: "",
+      commander: "",
+      partner: "",
+      colors: "",
+      decklist: "",
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      isWinner: false,
+    })
+  }
+
+  const removePlayer = (playerId: string) => {
+    setManualPlayers(manualPlayers.filter((player) => player.id !== playerId))
+  }
+
+  const useManualPlayers = () => {
+    if (manualPlayers.length < 4) {
+      toast({
+        title: "Jogadores insuficientes",
+        description: "Adicione pelo menos 4 jogadores para criar um torneio.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setTournamentData({
+      name: tournamentName || "Commander 500 - Torneio Manual",
+      date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : "2023-04-15",
+      endDate: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : "2023-04-15",
+      location: tournamentType === "presencial" ? "Loja Mágica - São Paulo" : "Online - Discord",
+      players: manualPlayers,
+    })
+
+    toast({
+      title: "Torneio criado",
+      description: "Os dados do torneio foram carregados com sucesso.",
+    })
+  }
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -73,6 +151,7 @@ export default function RegisterTournamentPage() {
 
     const tournamentData = await api.post(`/tournaments/load-decks`, {
       url: tournamentLink,
+      rounds: tournamentRounds,
     })
 
     setTournamentData(tournamentData.data)
@@ -86,6 +165,7 @@ export default function RegisterTournamentPage() {
   const handleSaveTournament = async () => {
     try {
       if (!tournamentLink) {
+        setIsLoading(true)
         toast({
           title: "Link do torneio obrigatório",
           description: "Por favor, insira um link válido para o torneio.",
@@ -103,6 +183,9 @@ export default function RegisterTournamentPage() {
         user_id: Number(user?.id),
         online: tournamentType,
         format: "EDH",
+        registration_mode: registrationMode,
+        rounds: tournamentRounds,
+        players: tournamentData.players
       })
       if (response.status !== 201) {
         toast({
@@ -122,12 +205,10 @@ export default function RegisterTournamentPage() {
     }
     setIsLoading(true)
 
-    // Validate that all players have results
     const allPlayersHaveResults = tournamentData.players.every(
       (player: any) => player.wins > 0 || player.losses > 0 || player.draws > 0,
     )
 
-    // Check if exactly one player is marked as winner
     const winnerCount = tournamentData.players.filter((player: any) => player.isWinner).length
     const hasOneWinner = winnerCount === 1
 
@@ -151,7 +232,6 @@ export default function RegisterTournamentPage() {
       return
     }
 
-    // Simulate API call to save tournament results
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsLoading(false)
@@ -168,6 +248,42 @@ export default function RegisterTournamentPage() {
     return null
   }
 
+  const handleCommanderSelect = (name: string, cardData?: any) => {
+    let colors = newPlayer.colors
+
+    if (cardData) {
+      // Se temos dados da carta, extraímos as cores da identidade de cor
+      colors = cardData.color_identity?.join("") || ""
+    }
+
+    setNewPlayer({
+      ...newPlayer,
+      commander: name,
+      // commanderData: cardData || null,
+      colors: colors,
+    })
+  }
+
+  const handlePartnerSelect = (name: string, cardData?: any) => {
+    let colors = newPlayer.colors
+
+    if (cardData) {
+      // Se temos dados da carta, combinamos as cores com as já existentes
+      const currentColors = new Set(newPlayer.colors.split(""))
+      const partnerColors = cardData.color_identity || []
+
+      partnerColors.forEach((color: string) => currentColors.add(color))
+      colors = Array.from(currentColors).join("")
+    }
+
+    setNewPlayer({
+      ...newPlayer,
+      partner: name,
+      // partnerData: cardData || null,
+      colors: colors,
+    })
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Registrar Resultados de Torneio</h1>
@@ -178,6 +294,26 @@ export default function RegisterTournamentPage() {
           <CardDescription>Preencha os dados do torneio</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label>Modo de Registro</Label>
+              <RadioGroup value={registrationMode} onValueChange={setRegistrationMode} className="flex space-x-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="topdeck" id="topdeck" />
+                  <Label htmlFor="topdeck" className="cursor-pointer">
+                    Via TopDeck.gg
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="manual" id="manual" />
+                  <Label htmlFor="manual" className="cursor-pointer">
+                    Registro Manual
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Campo: Nome do torneio */}
             <div className="space-y-2">
@@ -245,25 +381,194 @@ export default function RegisterTournamentPage() {
                   selected={dateRange}
                   onSelect={setDateRange}
                   numberOfMonths={2}
+                  disabled={(date) => date < new Date("1900-01-01")}
+                  footer={
+                    <div className="px-4 pb-4 pt-0 text-sm text-muted-foreground">
+                      Selecione a data de início e fim do torneio
+                    </div>
+                  }
                 />
               </PopoverContent>
             </Popover>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tournament-link">Link do Torneio</Label>
-            <Input
-              id="tournament-link"
-              placeholder="https://topdeck.gg/tournaments/..."
-              value={tournamentLink}
-              onChange={(e) => setTournamentLink(e.target.value)}
-            />
-          </div>
+          {registrationMode === "topdeck" ? (
+            <div className="space-y-2">
+              <Label htmlFor="tournament-link">Link do Torneio</Label>
+              <Input
+                id="tournament-link"
+                placeholder="https://topdeck.gg/tournaments/..."
+                value={tournamentLink}
+                onChange={(e) => setTournamentLink(e.target.value)}
+              />
+              <Label htmlFor="tournament-rounds">Numero de Rodadas</Label>
+              <Input
+                id="tournament-rounds"
+                type="number"
+                min="0"
+                value={tournamentRounds}
+                onChange={(e) => setTournamentsRounds(Number(e.target.value))}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Label htmlFor="tournament-link">Link do Torneio</Label>
+              <Input
+                id="tournament-link"
+                placeholder="https://topdeck.gg/tournaments/..."
+                value={tournamentLink}
+                onChange={(e) => setTournamentLink(e.target.value)}
+              />
+              <Label htmlFor="tournament-rounds">Numero de Rodadas</Label>
+              <Input
+                id="tournament-rounds"
+                type="number"
+                min="0"
+                value={tournamentRounds}
+                onChange={(e) => setTournamentsRounds(Number(e.target.value))}
+              />
+              <div className="border rounded-md p-4">
+                <h3 className="text-lg font-medium mb-4">Adicionar Jogadores</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="player-name">Nome do Jogador*</Label>
+                    <Input
+                      id="player-name"
+                      placeholder="Nome do jogador"
+                      value={newPlayer.name}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <CardSearch
+                      label="Comandante"
+                      placeholder="Buscar comandante..."
+                      value={newPlayer.commander}
+                      onChange={handleCommanderSelect}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <CardSearch
+                      label="Parceiro (opcional)"
+                      placeholder="Buscar parceiro..."
+                      value={newPlayer.partner}
+                      onChange={handlePartnerSelect}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <ColorSelector
+                      value={newPlayer.colors}
+                      onChange={(colors) => setNewPlayer({ ...newPlayer, colors })}
+                    />
+                  </div>
+
+                  {/* Novos campos para resultados */}
+                  <div className="space-y-2">
+                    <Label htmlFor="player-wins">Vitórias</Label>
+                    <Input
+                      id="player-wins"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.wins}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, wins: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-losses">Derrotas</Label>
+                    <Input
+                      id="player-losses"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.losses}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, losses: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-draws">Empates</Label>
+                    <Input
+                      id="player-draws"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.draws}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, draws: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 h-full pt-6">
+                      <Checkbox
+                        id="player-winner"
+                        checked={newPlayer.isWinner}
+                        onCheckedChange={(checked) => setNewPlayer({ ...newPlayer, isWinner: checked as boolean })}
+                      />
+                      <Label htmlFor="player-winner">Campeão</Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="player-decklist">Decklist*</Label>
+                    <Textarea
+                      id="player-decklist"
+                      placeholder="Cole a decklist aqui..."
+                      value={newPlayer.decklist}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, decklist: e.target.value })}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                </div>
+                <Button onClick={addPlayer}>Adicionar Jogador</Button>
+              </div>
+
+              {manualPlayers.length > 0 && (
+                <div className="border rounded-md p-4">
+                  <h3 className="text-lg font-medium mb-4">Jogadores Adicionados ({manualPlayers.length})</h3>
+                  <div className="space-y-4">
+                    {manualPlayers.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between border-b pb-2">
+                        <div>
+                          <p className="font-medium">{player.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Comandante: {player.commander}
+                            {player.partner && ` / Parceiro: ${player.partner}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Cores: {player.colors || "N/A"}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Resultados: {player.wins}W / {player.losses}L / {player.draws}D
+                            {player.isWinner && " • Campeão"}
+                          </p>
+                          {player.decklist && (
+                            <details className="mt-1">
+                              <summary className="text-sm cursor-pointer hover:text-primary">Ver decklist</summary>
+                              <pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-auto max-h-[200px]">
+                                {player.decklist}
+                              </pre>
+                            </details>
+                          )}
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => removePlayer(player.id)}>
+                          Remover
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
         <CardFooter>
-          <Button onClick={handleFetchTournament} disabled={isLoading}>
-            {isLoading ? "Carregando..." : "Carregar Dados do Torneio"}
-          </Button>
+          {registrationMode === "topdeck" ? (
+            <Button onClick={handleFetchTournament} disabled={isLoading}>
+              {isLoading ? "Carregando..." : "Carregar Dados do Torneio"}
+            </Button>
+          ) : (
+            <Button onClick={useManualPlayers} disabled={manualPlayers.length < 4}>
+              {isLoading ? "Carregando..." : "Criar Torneio"}
+            </Button>
+          )}
         </CardFooter>
       </Card>
 
@@ -299,4 +604,3 @@ export default function RegisterTournamentPage() {
     </div>
   )
 }
-
