@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { type ScryfallCard, getCardImageUrl } from "@/lib/scryfall"
+import { type ScryfallCard, getCardImageUrl, getCardNormalImageUrl } from "@/lib/scryfall"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -103,7 +103,7 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <img
-                  src={getCardImageUrl(cardData, "normal") || "/placeholder.svg"}
+                  src={getCardNormalImageUrl(cardData, "normal") || "/placeholder.svg"}
                   alt={cardData.name}
                   className="rounded-lg w-full object-contain"
                 />

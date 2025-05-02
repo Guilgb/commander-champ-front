@@ -35,30 +35,73 @@ export function CardRanking() {
   // Buscar dados dos cards quando o componente for montado
   useEffect(() => {
     const fetchCardData = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
+  
+      try {
+        const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
+          // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+          // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+        });
+  
+        const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
+        const filteredCards = mostUsedCards.data.filter(
+          (card) =>
+            (card.type !== "Land" || card.name === "Arcane Signet") &&
+            !filterList.includes(card.name)
+        );
+  
+        setMostUsedCards(filteredCards);
+  
+        // Buscar imagens para os cards da página inicial automaticamente
+        const cardDataMap: Record<string, ScryfallCard> = {};
+        const cardsToLoad = filteredCards.slice(0, itemsPerPage);
+        
+        for (const card of cardsToLoad) {
+          try {
+            const cardInfo = await getCardByName(card.name);
+            if (cardInfo) {
+              cardDataMap[card.name] = cardInfo;
+            }
+          } catch (error) {
+            console.error(`Error fetching data for ${card.name}:`, error);
+          }
+        }
+  
+        setCardData(cardDataMap);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar dados dos cards:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchCardData();
+  }, [filters, itemsPerPage]);
 
-      const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
-        // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-        // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-      })
-
-      const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
-      const filteredCards = mostUsedCards.data.filter(
-        (card) =>
-          (card.type !== "Land" || card.name === "Arcane Signet") &&
-          !filterList.includes(card.name)
-      )
-
-      setMostUsedCards(filteredCards)
-
-      const cardDataMap: Record<string, ScryfallCard> = {}
-
-      setCardData(cardDataMap)
-      setIsLoading(false)
-    }
-
-    fetchCardData()
-  }, [filters])
+  useEffect(() => {
+    const loadImagesForCurrentPage = async () => {
+      if (currentCards.length === 0) return;
+      
+      const cardsWithoutImages = currentCards.filter(card => !cardData[card.name]);
+      if (cardsWithoutImages.length === 0) return;
+      
+      for (const card of cardsWithoutImages) {
+        try {
+          const cardInfo = await getCardByName(card.name);
+          if (cardInfo) {
+            setCardData(prev => ({
+              ...prev,
+              [card.name]: cardInfo
+            }));
+          }
+        } catch (error) {
+          console.error(`Error fetching data for ${card.name}:`, error);
+        }
+      }
+    };
+    
+    loadImagesForCurrentPage();
+  }, [currentPage, cardData]);
 
   const handleCardSelection = async (cardName: string) => {
     setSelectedCard(cardName)
@@ -165,7 +208,7 @@ export function CardRanking() {
                       setMinPercentage(value[0])
                       setMaxPercentage(value[1])
                     }}
-                    className="w-full" // Adiciona largura total para garantir que a barra seja renderizada corretamente
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -200,7 +243,7 @@ export function CardRanking() {
                 #{(currentPage - 1) * itemsPerPage + index + 1}
               </div>
               <Avatar className="h-12 w-12 rounded-md border">
-                <AvatarImage src={cardData[card.name]?.image_uris?.small} alt={card.name} />
+                <AvatarImage src={cardData[card.name]?.image_uris?.art_crop} alt={card.name} />
                 <AvatarFallback className="rounded-md">{card.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-grow">

@@ -74,7 +74,6 @@ export async function getCardsByNames(cardNames: string[]): Promise<Record<strin
       }
     })
 
-    // Se não for o último lote, espere um pouco para não sobrecarregar a API
     if (i + batchSize < cardNames.length) {
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
@@ -83,12 +82,10 @@ export async function getCardsByNames(cardNames: string[]): Promise<Record<strin
   return result
 }
 
-// Função para obter o preço em BRL (simulado, já que Scryfall não fornece preços em BRL)
+
 export function getCardPriceBRL(card: ScryfallCard): number {
-  // Simulação de conversão de USD para BRL
-  // Em uma aplicação real, você usaria uma API de conversão de moeda
   const usdPrice = Number.parseFloat(card.prices.usd || "0")
-  const conversionRate = 5.0 // Taxa de conversão simulada USD -> BRL
+  const conversionRate = 5.0
   return usdPrice * conversionRate
 }
 
@@ -98,6 +95,14 @@ export function getCardImageUrl(card: ScryfallCard, size: "small" | "normal" | "
   }
 
   return card.image_uris?.art_crop || "/placeholder.svg?height=300&width=215"
+}
+
+export function getCardNormalImageUrl(card: ScryfallCard, size: "small" | "normal" | "large" = "normal"): string {
+  if (!card.image_uris && card.card_faces && card.card_faces[0].image_uris) {
+    return card.card_faces[0].image_uris.normal
+  }
+
+  return card.image_uris?.normal || "/placeholder.svg?height=300&width=215"
 }
 
 export function getCardColor(card: ScryfallCard): string {
