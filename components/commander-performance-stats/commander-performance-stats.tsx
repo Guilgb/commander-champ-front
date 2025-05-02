@@ -50,7 +50,6 @@ export function CommanderPerformanceStats() {
         const { cmc: cardCmc, colors, commander, dataRange: dataRane, partner, playerName, selectedTournaments, title } = filters
         const filteredData = []
         for (const item of data) {
-          const { cmc } = item;
           const isValid = (
             (commander.length === 0 || !item.commander || commander === item.commander) &&
             (partner.length === 0 || !item.partner || item.partner === partner) &&

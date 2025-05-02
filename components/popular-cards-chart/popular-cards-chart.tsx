@@ -47,19 +47,20 @@ export function PopularCardsChart() {
       })
       const filteredData = []
       for (const item of mostUsedCards.data) {
-        const { cmc, name, type, colors } = item;
+        const { cmc, name, type } = item;
         const isValid = (
           (cardName.length === 0 || !name || name.toLowerCase().includes(cardName.toLowerCase())) &&
           (cardType.length === 0 || !cardType || type.toLowerCase().includes(cardType.toLowerCase())) &&
-          (cardCmc.length === 0 || !cardCmc || cardCmc.includes(cmc)) &&
           (
-            colors.length === 0 ||
+            cardCmc.length === 0 ||
+            !cardCmc ||
             (
-              colors &&
-              colors.length === colorFilter.length &&
-              colorFilter.every(color => item.colors.includes(color))
+              cardCmc.length === 2 ?
+                (item.cmc >= cardCmc[0] && item.cmc <= cardCmc[1]) :
+                cardCmc.includes(item.cmc)
             )
-          )
+          ) &&
+          (colors.length === 0 || (colors.length === item.colors.length && colors.every(color => item.colors.includes(color))))
         );
         if (isValid) {
           filteredData.push(item);
