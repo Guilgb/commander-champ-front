@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import api from "@/service/api"
-import { useCommanderFilters } from "@/app/contexts/filters-context"
 
 export function CommanderRanking() {
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
@@ -152,9 +151,9 @@ export function CommanderRanking() {
   }
 
   const top10Commanders = commanderRankingData
-    .filter((commander) => commander.entries > 0) // Filtra comandantes com entradas válidas
-    .sort((a, b) => b.winrate - a.winrate) // Ordena pelo maior winrate
-    .slice(0, 10) // Pega os 10 primeiros
+    .filter((commander) => commander.entries > 0)
+    .sort((a, b) => b.winrate - a.winrate)
+    .slice(0, 10)
 
   return (
     <Card>
@@ -296,8 +295,8 @@ export function CommanderRanking() {
                       </TableCell>
                     </TableRow>
                   ))
-              ) : top10Commanders.length > 0 ? (
-                top10Commanders.map((commander, index) => (
+              ) : currentCommanders.length > 0 ? (
+                currentCommanders.map((commander, index) => (
                   <TableRow
                     key={commander.id}
                     className="cursor-pointer hover:bg-muted"

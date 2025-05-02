@@ -152,16 +152,6 @@ export function CommanderPerformanceStats() {
     )
   }
 
-  const top10Commanders = commanderPerformanceData
-    .filter((commander) => commander.entries > 0)
-    .map((commander) => ({
-      ...commander,
-      winrate: (commander.champion / commander.entries) * 100,
-    }))
-    .sort((a, b) => b.winrate - a.winrate)
-    .slice(0, 10)
-
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -197,44 +187,6 @@ export function CommanderPerformanceStats() {
               <Bar dataKey="champion" name="Campeão" fill="#ff7300" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-4 mt-6">
-          {top10Commanders.map((commander) => (
-            <Card key={commander.id} className="w-full md:w-auto">
-              <CardContent className="p-4 flex items-center gap-4">
-                {cardData[commander.commander] ? (
-                  <Avatar className="h-12 w-12 border-2 border-primary">
-                    <AvatarImage
-                      src={getCardImageUrl(cardData[commander.commander], "small")}
-                      alt={commander.commander}
-                      className="object-cover"
-                    />
-                    <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <Skeleton className="h-12 w-12 rounded-full" />
-                )}
-                <div>
-                  <p className="font-medium text-sm">{commander.commander}</p>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {commander.entries} Entradas
-                    </Badge>
-                    <Badge variant="outline" className="text-xs bg-[#8884d8]/20">
-                      Top 8: {commander.top8} ({Math.round((commander.top8 / commander.entries) * 100)}%)
-                    </Badge>
-                    <Badge variant="outline" className="text-xs bg-[#82ca9d]/20">
-                      Top 4: {commander.top4} ({Math.round((commander.top4 / commander.entries) * 100)}%)
-                    </Badge>
-                    <Badge variant="outline" className="text-xs bg-[#ff7300]/20">
-                      Campeão: {commander.champion} ({Math.round((commander.champion / commander.entries) * 100)}%)
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
       </CardContent>
     </Card>

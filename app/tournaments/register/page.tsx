@@ -253,14 +253,12 @@ export default function RegisterTournamentPage() {
     let colors = newPlayer.colors
 
     if (cardData) {
-      // Se temos dados da carta, extraímos as cores da identidade de cor
       colors = cardData.color_identity?.join("") || ""
     }
 
     setNewPlayer({
       ...newPlayer,
       commander: name,
-      // commanderData: cardData || null,
       colors: colors,
     })
   }
@@ -269,7 +267,6 @@ export default function RegisterTournamentPage() {
     let colors = newPlayer.colors
 
     if (cardData) {
-      // Se temos dados da carta, combinamos as cores com as já existentes
       const currentColors = new Set(newPlayer.colors.split(""))
       const partnerColors = cardData.color_identity || []
 
@@ -280,7 +277,6 @@ export default function RegisterTournamentPage() {
     setNewPlayer({
       ...newPlayer,
       partner: name,
-      // partnerData: cardData || null,
       colors: colors,
     })
   }
@@ -317,7 +313,7 @@ export default function RegisterTournamentPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Campo: Nome do torneio */}
+
             <div className="space-y-2">
               <Label htmlFor="tournament-name">Nome do Torneio</Label>
               <Input
@@ -328,7 +324,6 @@ export default function RegisterTournamentPage() {
               />
             </div>
 
-            {/* Campo: Tipo de torneio (Presencial ou Online) */}
             <div className="space-y-2">
               <Label>Tipo de Torneio</Label>
               <RadioGroup value={tournamentType} onValueChange={setTournamentType} className="flex space-x-4">
@@ -348,7 +343,6 @@ export default function RegisterTournamentPage() {
             </div>
           </div>
 
-          {/* Campo: Data de início e fim */}
           <div className="space-y-2">
             <Label>Data do Torneio</Label>
             <Popover>
@@ -465,7 +459,6 @@ export default function RegisterTournamentPage() {
                     />
                   </div>
 
-                  {/* Novos campos para resultados */}
                   <div className="space-y-2">
                     <Label htmlFor="player-wins">Vitórias</Label>
                     <Input
