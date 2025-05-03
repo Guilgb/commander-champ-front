@@ -14,15 +14,9 @@ import { BannedCardResponse, ListArticlesUsersResponse } from "./types"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
-import { Calendar } from "@/components/ui/calendar"
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 
-// Mock articles data
-const articlesApi = await api.get(`/articles/users`)
-const mockArticles: ListArticlesUsersResponse[] = articlesApi.data
-
-// Mock forum topics data
 const mockTopics = [
   {
     id: "1",
@@ -30,52 +24,17 @@ const mockTopics = [
     author: "Pedro Alves",
     date: "15/04/2023",
     replies: 12,
-  },
-  {
-    id: "2",
-    title: "Dúvida sobre regra de substituição",
-    author: "Ana Costa",
-    date: "12/04/2023",
-    replies: 8,
-  },
-  {
-    id: "3",
-    title: "Alternativas budget para Rhystic Study",
-    author: "Lucas Mendes",
-    date: "10/04/2023",
-    replies: 15,
-  },
+  }
 ]
 
-// Mock banned cards data
-// const mockBannedCards = [
-//   {
-//     id: "1",
-//     name: "Sol Ring",
-//     reason: "Poder excessivo nos primeiros turnos",
-//     date: "01/01/2023",
-//   },
-//   {
-//     id: "2",
-//     name: "Mana Crypt",
-//     reason: "Poder excessivo nos primeiros turnos",
-//     date: "01/01/2023",
-//   },
-//   {
-//     id: "3",
-//     name: "Dockside Extortionist",
-//     reason: "Geração de mana desproporcional",
-//     date: "01/01/2023",
-//   },
-// ]
-
 export function ContentManagement() {
-  const [articles, setArticles] = useState(mockArticles)
+  const [articles, setArticles] = useState<ListArticlesUsersResponse[]>([])
   const [topics, setTopics] = useState(mockTopics)
   const [bannedCards, setBannedCards] = useState<(BannedCardResponse)[]>([])
   const [newBannedCard, setNewBannedCard] = useState({
     name: "",
     reason: "",
+    ban_date: "",
   })
   const [selected, setSelected] = useState<Date>();
   const [deleteArticle, setDeleteArticle] = useState<string | null>(null)
@@ -86,17 +45,64 @@ export function ContentManagement() {
       const response = await api.get("/bans")
       setBannedCards(response.data)
     }
-
+    async function fetchArticles() {
+      const responseArticles = await api.get("/articles/users")
+      setArticles(responseArticles.data)
+    }
+    fetchArticles()
     fetchBannedCards()
   }, [])
-
+  
   const handleAddBannedCard = async () => {
-    const id = (bannedCards.length + 1).toString()
-    const date = new Date().toLocaleDateString()
+    try {
+      const response = await api.post("/bans", {
+        card_name: newBannedCard.name,
+        reason: newBannedCard.reason,
+        ban_date: selected ? selected.toISOString().split("T")[0] : "",
+      });
 
-    setBannedCards([...bannedCards, { ...newBannedCard, id, date } as BannedCardResponse & { id: string; date: string }])
-    setNewBannedCard({ name: "", reason: "" })
-  }
+      if (response.status !== 201) {
+        throw new Error("Failed to add banned card");
+      }
+
+      const newCard = response.data;
+      setBannedCards([...bannedCards, newCard]);
+      setNewBannedCard({ name: "", reason: "", ban_date: "" });
+      setSelected(undefined);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao tentar adicionar o card banido.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteBannedCard = async (id: string) => {
+    try {
+      const response = await api.delete(`/bans`, {
+        data: { id: id },
+      });
+
+      if (response.status !== 200) {
+        throw new Error("Failed to delete banned card");
+      }
+
+      setBannedCards(bannedCards.filter((card) => card.id !== id));
+      toast({
+        title: "Card removido",
+        description: "O card foi removido com sucesso.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao tentar remover o card banido.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDelete = async (id: string) => {
     setDeleteArticle(id)
@@ -281,7 +287,7 @@ export function ContentManagement() {
                 <TableCell>{card.reason}</TableCell>
                 <TableCell>{card.date}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteBannedCard(card.id)}>
                     Remover
                   </Button>
                 </TableCell>

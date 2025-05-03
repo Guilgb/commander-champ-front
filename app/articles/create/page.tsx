@@ -228,11 +228,11 @@ export default function CreateArticlePage() {
                   <SelectValue placeholder="Selecione um tópico" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Estratégia</SelectItem>
-                  <SelectItem value="2">Deck Tech</SelectItem>
-                  <SelectItem value="3">Meta</SelectItem>
-                  <SelectItem value="4">Budget</SelectItem>
-                  <SelectItem value="5">Comunidade</SelectItem>
+                  <SelectItem value="6">Estratégia</SelectItem>
+                  <SelectItem value="5">Deck Tech</SelectItem>
+                  <SelectItem value="7">Meta</SelectItem>
+                  <SelectItem value="8">Budget</SelectItem>
+                  <SelectItem value="9">Comunidade</SelectItem>
                 </SelectContent>
               </Select>
             </div>
