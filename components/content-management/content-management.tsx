@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,11 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import api from "@/service/api"
-import { ListArticlesUsersResponse } from "./types"
+import { BannedCardResponse, ListArticlesUsersResponse } from "./types"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
-
+import { Calendar } from "@/components/ui/calendar"
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 
 // Mock articles data
 const articlesApi = await api.get(`/articles/users`)
@@ -46,44 +48,53 @@ const mockTopics = [
 ]
 
 // Mock banned cards data
-const mockBannedCards = [
-  {
-    id: "1",
-    name: "Sol Ring",
-    reason: "Poder excessivo nos primeiros turnos",
-    date: "01/01/2023",
-  },
-  {
-    id: "2",
-    name: "Mana Crypt",
-    reason: "Poder excessivo nos primeiros turnos",
-    date: "01/01/2023",
-  },
-  {
-    id: "3",
-    name: "Dockside Extortionist",
-    reason: "Geração de mana desproporcional",
-    date: "01/01/2023",
-  },
-]
+// const mockBannedCards = [
+//   {
+//     id: "1",
+//     name: "Sol Ring",
+//     reason: "Poder excessivo nos primeiros turnos",
+//     date: "01/01/2023",
+//   },
+//   {
+//     id: "2",
+//     name: "Mana Crypt",
+//     reason: "Poder excessivo nos primeiros turnos",
+//     date: "01/01/2023",
+//   },
+//   {
+//     id: "3",
+//     name: "Dockside Extortionist",
+//     reason: "Geração de mana desproporcional",
+//     date: "01/01/2023",
+//   },
+// ]
 
 export function ContentManagement() {
   const [articles, setArticles] = useState(mockArticles)
   const [topics, setTopics] = useState(mockTopics)
-  const [bannedCards, setBannedCards] = useState(mockBannedCards)
+  const [bannedCards, setBannedCards] = useState<(BannedCardResponse)[]>([])
   const [newBannedCard, setNewBannedCard] = useState({
     name: "",
     reason: "",
   })
+  const [selected, setSelected] = useState<Date>();
   const [deleteArticle, setDeleteArticle] = useState<string | null>(null)
   const { toast } = useToast()
 
+  useEffect(() => {
+    async function fetchBannedCards() {
+      const response = await api.get("/bans")
+      setBannedCards(response.data)
+    }
 
-  const handleAddBannedCard = () => {
+    fetchBannedCards()
+  }, [])
+
+  const handleAddBannedCard = async () => {
     const id = (bannedCards.length + 1).toString()
     const date = new Date().toLocaleDateString()
 
-    setBannedCards([...bannedCards, { ...newBannedCard, id, date }])
+    setBannedCards([...bannedCards, { ...newBannedCard, id, date } as BannedCardResponse & { id: string; date: string }])
     setNewBannedCard({ name: "", reason: "" })
   }
 
@@ -235,6 +246,17 @@ export function ContentManagement() {
                 id="card-reason"
                 value={newBannedCard.reason}
                 onChange={(e) => setNewBannedCard({ ...newBannedCard, reason: e.target.value })}
+              />
+            </div>
+            <div className="flex justify-center border rounded-md p-1">
+              <DayPicker
+              animate
+              mode="single"
+              selected={selected}
+              onSelect={setSelected}
+              footer={
+                selected ? `Selected: ${selected.toLocaleDateString()}` : "Pick a day."
+              }
               />
             </div>
           </CardContent>
