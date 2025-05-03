@@ -124,3 +124,11 @@ export function getCardColor(card: ScryfallCard): string {
     return colorMap[card.color_identity[0]] || colorMap.colorless
   }
 }
+
+export async function getCardImageByName(cardName: string, size: "small" | "normal" | "large" = "normal"): Promise<string | null> {
+  const card = await getCardByName(cardName)
+  if (!card) {
+    return null
+  }
+  return getCardImageUrl(card, size)
+}
