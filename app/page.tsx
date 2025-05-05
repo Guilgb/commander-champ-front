@@ -10,12 +10,18 @@ import { UserPlus } from "lucide-react"
 export default function Home() {
   return (
     <div className="flex flex-col gap-8">
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted rounded-lg">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted rounded-lg"
+        style={{
+          backgroundImage: "url('https://cards.scryfall.io/art_crop/front/b/f/bf76c6a4-d6e8-4d50-b65f-020252f7b659.jpg?1682692625')",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundColor: "rgba(0, 0, 0, 0.9)",
+        }}>
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">Commander 500</h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[700px] text-white md:text-xl">
                 O formato de Commander com limite de 500 reais por deck. Competitivo, acessível e divertido.
               </p>
             </div>
@@ -31,15 +37,15 @@ export default function Home() {
         </div>
       </section>
 
-      <Tabs defaultValue="rules" className="w-full">
+      <Tabs defaultValue="rules" className="w-full" >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="rules">Regras</TabsTrigger>
           <TabsTrigger value="banned">Lista de Banimentos</TabsTrigger>
           <TabsTrigger value="account-request">Solicitar Conta</TabsTrigger>
         </TabsList>
         <TabsContent value="rules">
-          <Card>
-            <CardHeader>
+          <Card >
+            <CardHeader className="bg-cover bg-center" >
               <CardTitle>Regras do Commander 500</CardTitle>
               <CardDescription>Regras específicas para o formato Commander 500</CardDescription>
             </CardHeader>
