@@ -148,14 +148,13 @@ export default function RegisterTournamentPage() {
 
     setIsLoading(true)
 
-    // await new Promise((resolve) => setTimeout(resolve, 1500))
     try {
-      const tournamentData = await api.post(`/tournaments/load-decks`, {
+      const loadTournament = await api.post(`/tournaments/load-decks`, {
         url: tournamentLink,
         rounds: tournamentRounds,
       })
 
-      setTournamentData(tournamentData.data)
+      setTournamentData(loadTournament.data)
       setIsLoading(false)
       toast({
         title: "Torneio carregado",
@@ -205,7 +204,6 @@ export default function RegisterTournamentPage() {
         setIsLoading(false)
         return
       }
-
     } catch (error) {
       toast({
         title: "Torneio não salvo",
