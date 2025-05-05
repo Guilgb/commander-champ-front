@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { type ScryfallCard, getCardImageUrl, getCardNormalImageUrl } from "@/lib/scryfall"
+import { getCardNormalImageUrl } from "@/lib/scryfall"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -13,20 +13,7 @@ import { useEffect, useState } from "react"
 import { DeckList } from "@/components/deck-list"
 import { ChevronDown, ChevronUp, Clock, Trophy, Calendar, Sparkles, ArrowUpDown } from "lucide-react"
 import api from "@/service/api"
-import { CommanderDeck } from "./types"
-
-interface CommanderDetailsProps {
-  commanderName: string
-  cardData?: ScryfallCard
-  onClose: () => void
-  winrateData?: {
-    wins: number
-    losses: number
-    draws: number
-    winrate: number
-  }
-}
-
+import { CommanderDeck, CommanderDetailsProps } from "./types"
 
 export function CommanderDetails({ commanderName, cardData, onClose, winrateData }: CommanderDetailsProps) {
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null)
@@ -47,7 +34,6 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
     fetchDecks()
   }, [commanderName])
 
-  // Ordenar decks com base na opção selecionada
   const sortedDecks = [...commanderDecks].sort((a, b) => {
     if (sortOrder === "winrate") {
       return b.winrate - a.winrate
@@ -57,6 +43,19 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
       return a.price - b.price
     }
   })
+
+  const generateCardListTxt = (cards: { name: string }[]) => {
+    const cardList = cards.map((card) => `1 ${card.name}`).join("\n");
+    const blob = new Blob([cardList], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${commanderName}_decklist.txt`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
 
   // Função para formatar o texto do card com quebras de linha
   const formatOracleText = (text?: string) => {
@@ -295,9 +294,6 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                               <CardTitle className="text-base">{deck.name}</CardTitle>
                               <Badge variant={deck.winrate >= 70 ? "default" : "outline"}>{deck.winrate}% WR</Badge>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline">R${deck.price}</Badge>
-                            </div>
                           </div>
                           <CardDescription className="flex items-center gap-2 mt-1">
                             <div className="flex items-center">
@@ -357,10 +353,23 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                               </>
                             )}
                           </Button>
-                          <Button variant="outline" size="sm">
-                            <Sparkles className="h-4 w-4 mr-1" />
-                            Copiar Deck
-                          </Button>
+                          <div className="ml-auto flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => generateCardListTxt(deck.cards)}
+                            >
+                              <Sparkles className="h-4 w-4 mr-1" />
+                              Download Decklist
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(deck.decklist, "_blank")}
+                            >
+                              Abrir Decklist
+                            </Button>
+                          </div>
                         </CardFooter>
 
                         {selectedDeck === deck.id && (

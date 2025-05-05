@@ -1,3 +1,5 @@
+import { type ScryfallCard } from "@/lib/scryfall"
+
 export interface DeckCard {
   name: string
   quantity: number
@@ -15,6 +17,7 @@ export interface CommanderDeck {
   name: string
   commander: string
   owner: DeckOwner
+  decklist: string;
   winrate: number
   wins: number
   losses: number
@@ -25,4 +28,16 @@ export interface CommanderDeck {
   tags: string[]
   description: string
   cards: DeckCard[]
+}
+
+export interface CommanderDetailsProps {
+  commanderName: string
+  cardData?: ScryfallCard
+  onClose: () => void
+  winrateData?: {
+    wins: number
+    losses: number
+    draws: number
+    winrate: number
+  }
 }
