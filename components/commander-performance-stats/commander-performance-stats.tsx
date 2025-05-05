@@ -49,6 +49,7 @@ export function CommanderPerformanceStats() {
         const data = await response.data
         const { cmc: cardCmc, colors, commander, dataRange: dataRane, partner, playerName, selectedTournaments, title } = filters
         const filteredData = []
+
         for (const item of data) {
           const isValid = (
             (commander.length === 0 || !item.commander || commander === item.commander) &&
@@ -59,19 +60,17 @@ export function CommanderPerformanceStats() {
               (
                 cardCmc.length === 2 ?
                   (item.cmc >= cardCmc[0] && item.cmc <= cardCmc[1]) :
-                  cardCmc.includes(item.cmc) 
+                  cardCmc.includes(item.cmc)
               )
             ) &&
             (colors.length === 0 || (colors.length === item.colors.length && colors.every(color => item.colors.includes(color)))) &&
-            // (dataRane === "all" || item.dataRane === dataRane) &&
-            // (playerName === "all" || item.playerName.toLowerCase().includes(playerName.toLowerCase())) &&
-            // (selectedTournaments.length === 0 || selectedTournaments.includes(item.tournament))
             (title === "all" || (title.toLowerCase() === "top4" ? item.top4 > 0 : title.toLowerCase() === "top8" ? item.top8 > 0 : item.top4.toLowerCase().includes(title.toLowerCase()) || item.top8.toLowerCase().includes(title.toLowerCase())))
           )
-          if (isValid) {
+          if (isValid || Object.values(filters).every((filter) => filter.length === 1)) {
             filteredData.push(item)
           }
         }
+
         filteredData.sort((a, b) => (b.champion / b.entries) - (a.champion / a.entries));
         const top10FilteredData = filteredData.slice(0, 10);
         setcommanderPerformanceData(top10FilteredData)
