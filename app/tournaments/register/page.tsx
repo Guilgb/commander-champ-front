@@ -148,19 +148,27 @@ export default function RegisterTournamentPage() {
 
     setIsLoading(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const tournamentData = await api.post(`/tournaments/load-decks`, {
+        url: tournamentLink,
+        rounds: tournamentRounds,
+      })
 
-    const tournamentData = await api.post(`/tournaments/load-decks`, {
-      url: tournamentLink,
-      rounds: tournamentRounds,
-    })
-
-    setTournamentData(tournamentData.data)
-    setIsLoading(false)
-    toast({
-      title: "Torneio carregado",
-      description: "Os dados do torneio foram carregados com sucesso.",
-    })
+      setTournamentData(tournamentData.data)
+      setIsLoading(false)
+      toast({
+        title: "Torneio carregado",
+        description: "Os dados do torneio foram carregados com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar torneio",
+        description: "Não foi possível carregar os dados do torneio. Tente novamente. Se o erro persistir, tente de maneira manual.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
   }
 
   const handleSaveTournament = async () => {
@@ -589,15 +597,15 @@ export default function RegisterTournamentPage() {
               />
             </CardContent>
             <CardFooter>
-                <Button
+              <Button
                 onClick={() => {
                   setIsLoading(true)
                   handleSaveTournament().finally(() => setIsLoading(false))
                 }}
                 disabled={isLoading}
-                >
+              >
                 {isLoading ? "Salvando..." : "Salvar Resultados"}
-                </Button>
+              </Button>
             </CardFooter>
           </Card>
         </>
