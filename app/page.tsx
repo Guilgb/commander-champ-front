@@ -21,7 +21,7 @@ export default function Home() {
             </div>
             <div className="space-x-4">
               <Button asChild>
-                <Link href="/forum">Fórum</Link>
+                <Link href="/articles">Artigos</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/metrics">Métricas</Link>
@@ -89,10 +89,10 @@ export default function Home() {
         </TabsContent>
       </Tabs>
 
-      <section className="space-y-4">
+      {/* <section className="space-y-4">
         <h2 className="text-2xl font-bold tracking-tight">Artigos Recentes</h2>
         <RecentArticles />
-      </section>
+      </section> */}
     </div>
   )
 }
