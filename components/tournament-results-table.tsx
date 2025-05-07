@@ -3,6 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Trash2 } from "lucide-react"
 
 interface Player {
   id: string
@@ -10,6 +12,7 @@ interface Player {
   commander: string
   partner?: string
   colors: string
+  decklist?: string
   wins: number
   losses: number
   draws: number
@@ -19,9 +22,16 @@ interface Player {
 interface TournamentResultsTableProps {
   players: Player[]
   onUpdateResults: (players: Player[]) => void
+  onRemovePlayer?: (playerId: string) => void
+  editable?: boolean
 }
 
-export function TournamentResultsTable({ players, onUpdateResults }: TournamentResultsTableProps) {
+export function TournamentResultsTable({
+  players,
+  onUpdateResults,
+  onRemovePlayer,
+  editable = false,
+}: TournamentResultsTableProps) {
   const handleResultChange = (playerId: string, field: "wins" | "losses" | "draws", value: number) => {
     const updatedPlayers = players.map((player) => {
       if (player.id === playerId) {
@@ -56,6 +66,7 @@ export function TournamentResultsTable({ players, onUpdateResults }: TournamentR
           <TableHead>Derrotas</TableHead>
           <TableHead>Empates</TableHead>
           <TableHead>Campeão</TableHead>
+          {editable && onRemovePlayer && <TableHead>Ações</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -102,10 +113,21 @@ export function TournamentResultsTable({ players, onUpdateResults }: TournamentR
                 <Label htmlFor={`winner-${player.id}`}>Campeão</Label>
               </div>
             </TableCell>
+            {editable && onRemovePlayer && (
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemovePlayer(player.id)}
+                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>
     </Table>
   )
 }
-
