@@ -12,9 +12,6 @@ import Link from "next/link"
 import { ArticleComments } from "@/components/article-comments/article-comments"
 import api from "@/service/api"
 
-const articlesApi = await api.get(`/articles`)
-const articles = articlesApi.data
-
 export default function ArticleDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -23,16 +20,31 @@ export default function ArticleDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIsLoading(true)
-    const foundArticle = articles.find((a: { id: string | string[] | undefined }) => a.id === params.id)
-
-    if (foundArticle) {
-      setArticle(foundArticle)
-    } else {
-      router.push("/articles")
+    async function fetchArticles() {
+      try {
+        const articlesApi = await api.get(`/articles`)
+        return articlesApi.data
+      } catch (error) {
+        console.error("Failed to fetch articles:", error)
+        return []
+      }
     }
 
-    setIsLoading(false)
+    async function loadArticle() {
+      setIsLoading(true)
+      const articles = await fetchArticles()
+      const foundArticle = articles.find((a: { id: string | string[] | undefined }) => a.id === params.id)
+
+      if (foundArticle) {
+        setArticle(foundArticle)
+      } else {
+        router.push("/articles")
+      }
+
+      setIsLoading(false)
+    }
+
+    loadArticle()
   }, [params.id, router])
 
   if (isLoading || !article) {

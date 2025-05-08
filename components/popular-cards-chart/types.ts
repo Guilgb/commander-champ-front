@@ -13,4 +13,5 @@ export interface MostUsedCards {
   type: string;
   quantity: number;
   percentage: number;
+  date: string;
 }

@@ -100,7 +100,8 @@ export function CommanderFilter() {
       title: titleFilter,
       commander,
       partner,
-      dataRange: '',
+      start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : "",
+      end_date: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : "",
     })
   }
 
@@ -518,7 +519,11 @@ export function CommanderFilter() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 calendar-wrapper" align="start">
-              <MyDatePicker/>
+              <MyDatePicker
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+              />
             </PopoverContent>
           </Popover>
         </div>

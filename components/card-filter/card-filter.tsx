@@ -9,7 +9,7 @@ import { Slider } from "@/components/ui/slider"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { MyDatePicker } from "@/components/ui/calendar"
 import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react"
-import { format as formatDate } from "date-fns"
+import { format, formatDate } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -75,14 +75,16 @@ export function CardFilter() {
     const cardCmc = cmc;
     const cardName = name;
     const cardType = type;
-    const format = "c500";
+    const cardFormat = "c500";
 
     setFilters({
       cardCmc,
       cardName,
       colors,
       cardType,
-      format,
+      format: cardFormat,
+      start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : "",
+      end_date: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : "",
     });
   }
 
@@ -380,11 +382,11 @@ export function CardFilter() {
                 {dateRange?.from ? (
                   dateRange.to ? (
                     <>
-                      {formatDate(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                      {formatDate(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
+                      {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                      {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
                     </>
                   ) : (
-                    formatDate(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                    format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
                   )
                 ) : (
                   "Selecionar período"
@@ -400,10 +402,9 @@ export function CardFilter() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 calendar-wrapper" align="start">
               <MyDatePicker
                 mode="range"
-                // defaultMonth={dateRange?.from}
                 selected={dateRange}
                 onSelect={setDateRange}
               />

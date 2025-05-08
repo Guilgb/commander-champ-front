@@ -39,33 +39,59 @@ export function PopularCardsChart() {
   useEffect(() => {
     async function fetchCardData() {
       setLoading(true)
-      const { cardType, colors, cardCmc, cardName } = filters;
+      const { cardType, colors, cardCmc, cardName, start_date, end_date } = filters;
       const colorFilter = colors
-      const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {
-        // start_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-        // end_date: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
-      })
-      const filteredData = []
-      for (const item of mostUsedCards.data) {
-        const { cmc, name, type } = item;
-        const isValid = (
-          (cardName.length === 0 || !name || name.toLowerCase().includes(cardName.toLowerCase())) &&
-          (cardType.length === 0 || !cardType || type.toLowerCase().includes(cardType.toLowerCase())) &&
-          (
-            cardCmc.length === 0 ||
-            !cardCmc ||
-            (
-              cardCmc.length === 2 ?
-                (item.cmc >= cardCmc[0] && item.cmc <= cardCmc[1]) :
-                cardCmc.includes(item.cmc)
-            )
-          ) &&
-          (colors.length === 0 || (colors.length === item.colors.length && colors.every(color => item.colors.includes(color))))
-        );
-        if (isValid) {
-          filteredData.push(item);
+      const mostUsedCards = await api.post<MostUsedCards[]>(`/cards/metrics/list`, {})
+
+      const filteredData = mostUsedCards.data.filter((item) => {
+        const { cmc, name, type, colors: itemColors, date } = item;
+
+        if (start_date && end_date) {
+          const parseDate = (dateString: string) => {
+            const [day, month, year] = dateString.split('/').map(Number);
+            return new Date(year, month - 1, day);
+          };
+
+          const itemDate = parseDate(date);
+          const startDate = new Date(start_date);
+          const endDate = new Date(end_date);
+
+          if (isNaN(itemDate.getTime()) || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.warn("Invalid date detected in filtering:", { date, start_date, end_date });
+            return false;
+          }
+
+          if (itemDate < startDate || itemDate > endDate) {
+            return false;
+          }
         }
-      }
+
+        if (cardName && cardName.length > 0 && name && !name.toLowerCase().includes(cardName.toLowerCase())) {
+          return false;
+        }
+
+        if (cardType && cardType.length > 0 && type && !type.toLowerCase().includes(cardType.toLowerCase())) {
+          return false;
+        }
+
+        if (cardCmc && cardCmc.length > 0) {
+          if (cardCmc.length === 2) {
+            if (cmc < cardCmc[0] || cmc > cardCmc[1]) {
+              return false;
+            }
+          } else if (!cardCmc.includes(cmc)) {
+            return false;
+          }
+        }
+
+        if (colors && colors.length > 0) {
+          if (!itemColors || itemColors.length !== colors.length || !colors.every((color) => itemColors.includes(color))) {
+            return false;
+          }
+        }
+
+        return true;
+      });
       const filterList = ["Arcane Signet", "Sol Ring", "Fellwar Stone", "Fabled Passage", "Evolving Wilds"];
 
       const top10Cards = filteredData
@@ -73,7 +99,7 @@ export function PopularCardsChart() {
           (card) =>
             (card.type !== "Land" || card.name === "Arcane Signet") &&
             !filterList.includes(card.name) &&
-            card.colors.length === colorFilter.length
+            colorFilter.every((color) => card.colors.includes(color))
         )
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 10);

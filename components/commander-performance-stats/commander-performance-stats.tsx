@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getCardByName, getCardImageUrl, type ScryfallCard } from "@/lib/scryfall"
 import { use, useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CommanderPerformaceResponse } from "./types"
+import { CommanderPerformaceResponse, ItensResponse } from "./types"
 import api from "@/service/api"
 import { useCommanderFilters } from "@/app/contexts/filters-context"
 import { isValid } from "date-fns"
@@ -47,31 +47,59 @@ export function CommanderPerformanceStats() {
       try {
         const response = await api.post("/decks/statistics")
         const data = await response.data
-        const { cmc: cardCmc, colors, commander, dataRange: dataRane, partner, playerName, selectedTournaments, title } = filters
-        const filteredData = []
+        const { cmc: cardCmc, colors, commander, start_date, end_date, partner, playerName, selectedTournaments, title } = filters
 
-        for (const item of data) {
-          const isValid = (
-            (commander.length === 0 || !item.commander || commander === item.commander) &&
-            (partner.length === 0 || !item.partner || item.partner === partner) &&
-            (
-              cardCmc.length === 0 ||
-              !cardCmc ||
-              (
-                cardCmc.length === 2 ?
-                  (item.cmc >= cardCmc[0] && item.cmc <= cardCmc[1]) :
-                  cardCmc.includes(item.cmc)
-              )
-            ) &&
-            (colors.length === 0 || (colors.length === item.colors.length && colors.every(color => item.colors.includes(color)))) &&
-            (title === "all" || (title.toLowerCase() === "top4" ? item.top4 > 0 : title.toLowerCase() === "top8" ? item.top8 > 0 : item.top4.toLowerCase().includes(title.toLowerCase()) || item.top8.toLowerCase().includes(title.toLowerCase())))
-          )
-          if (isValid || Object.values(filters).every((filter) => filter.length === 1)) {
-            filteredData.push(item)
+        const startDate = start_date !== 'all' ? new Date(start_date) : null;
+        const endDate = end_date !== 'all' ? new Date(end_date) : null;
+
+        const filteredData = data.filter((item: ItensResponse) => {
+          if (commander && commander !== 'all' && item.commander !== commander) {
+            return false;
           }
-        }
 
-        filteredData.sort((a, b) => (b.champion / b.entries) - (a.champion / a.entries));
+          if (selectedTournaments?.length > 0 && !selectedTournaments.includes(item.tournament_id)) {
+            return false;
+          }
+
+          if (colors?.length > 0 && (!item.colors || item.colors.length !== colors.length || !colors.every(c => item.colors.includes(c)))) {
+            return false;
+          }
+
+          if (cardCmc?.length === 2 && (item.cmc < cardCmc[0] || item.cmc > cardCmc[1])) {
+            return false;
+          }
+
+          if (commander && commander !== 'all' && item.commander !== commander) {
+            return false;
+          }
+
+          if (partner && partner.length > 0 && item.partner !== partner) {
+            return false;
+          }
+
+          if (start_date && end_date) {
+            const parseDate = (dateString: string) => {
+              const [day, month, year] = dateString.split('/').map(Number);
+              return new Date(year, month - 1, day);
+            };
+  
+            const itemDate = parseDate(item.date);
+            const startDate = new Date(start_date);
+            const endDate = new Date(end_date);
+
+            if (isNaN(itemDate.getTime()) || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              console.warn("Invalid date detected in filtering:", { itemDate: item.date, start_date, end_date });
+              return false;
+            }
+
+            if (itemDate < startDate || itemDate > endDate) {
+              return false;
+            }
+          }
+
+          return true
+        })
+
         const top10FilteredData = filteredData.slice(0, 10);
         setcommanderPerformanceData(top10FilteredData)
       } catch (error) {
