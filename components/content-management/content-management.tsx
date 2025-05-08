@@ -14,8 +14,8 @@ import { BannedCardResponse, ListArticlesUsersResponse } from "./types"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/style.css";
+import { MyDatePicker } from "../ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const mockTopics = [
   {
@@ -52,7 +52,7 @@ export function ContentManagement() {
     fetchArticles()
     fetchBannedCards()
   }, [])
-  
+
   const handleAddBannedCard = async () => {
     try {
       const response = await api.post("/bans", {
@@ -237,32 +237,52 @@ export function ContentManagement() {
             <CardTitle>Adicionar Card Banido</CardTitle>
             <CardDescription>Adicione um novo card à lista de banimentos</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="card-name">Nome do Card</Label>
-              <Input
-                id="card-name"
-                value={newBannedCard.name}
-                onChange={(e) => setNewBannedCard({ ...newBannedCard, name: e.target.value })}
-              />
+          <CardContent className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="card-name">Nome do Card</Label>
+                <Input
+                  id="card-name"
+                  value={newBannedCard.name}
+                  onChange={(e) => setNewBannedCard({ ...newBannedCard, name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Data do Banimento</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      {selected ? (
+                        <span>{selected.toLocaleDateString("pt-BR")}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Selecione uma data</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="transform scale-90 origin-top-left">
+                      <MyDatePicker
+                        selected={selected}
+                        onSelect={setSelected}
+                        mode="single"
+                        className="max-w-[280px]"
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-full">
               <Label htmlFor="card-reason">Motivo do Banimento</Label>
               <Textarea
                 id="card-reason"
                 value={newBannedCard.reason}
                 onChange={(e) => setNewBannedCard({ ...newBannedCard, reason: e.target.value })}
-              />
-            </div>
-            <div className="flex justify-center border rounded-md p-1">
-              <DayPicker
-              animate
-              mode="single"
-              selected={selected}
-              onSelect={setSelected}
-              footer={
-                selected ? `Selected: ${selected.toLocaleDateString()}` : "Pick a day."
-              }
+                className="min-h-[150px]"
               />
             </div>
           </CardContent>

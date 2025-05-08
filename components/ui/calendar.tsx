@@ -1,65 +1,117 @@
-"use client"
+import { useState } from "react";
+import { DateRange, DayPicker, SelectSingleEventHandler, SelectRangeEventHandler } from "react-day-picker";
+import "react-day-picker/style.css";
+import { ptBR } from "date-fns/locale"
+import { cn } from "@/lib/utils";
 
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+type CalendarProps = {
+  mode?: "range" | "single";
+  selected?: Date | DateRange | undefined;
+  onSelect?: ((date: Date | undefined) => void) | ((range: DateRange | undefined) => void);
+  className?: string;
+  classNames?: Record<string, string>;
+  showOutsideDays?: boolean;
+};
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
-
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
-
-function Calendar({
+export function MyDatePicker({
   className,
-  classNames,
+  classNames: customClassNames,
+  mode = "range",
   showOutsideDays = true,
+  onSelect,
+  selected,
   ...props
 }: CalendarProps) {
-  return (
-    <DayPicker
-      showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
-      classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
-        nav_button: cn(
-          buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-        ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "grid grid-cols-7 gap-1",
-        head_cell: "text-muted-foreground w-9 font-normal text-[0.8rem] text-center",
-        row: "grid grid-cols-7 gap-1",
-        cell: "h-9 w-9 p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: cn(
-          buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
-        ),
-        day_range_end: "day-range-end",
-        day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-accent-foreground",
-        day_outside:
-          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-        day_disabled: "text-muted-foreground opacity-50",
-        day_range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground",
-        day_hidden: "invisible",
-        ...classNames,
-      }}
-      components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
-      }}
-      {...props}
-    />
-  )
-}
-Calendar.displayName = "Calendar"
+  const [range, setRange] = useState<DateRange | undefined>(
+    mode === "range" && selected ? selected as DateRange : undefined
+  );
 
-export { Calendar }
+  const [singleDate, setSingleDate] = useState<Date | undefined>(
+    mode === "single" && selected ? selected as Date : undefined
+  );
+
+  const sharedClassNames = {
+    months: "flex flex-col space-y-4",
+    month: "space-y-4",
+    nav: "space-x-1 flex items-center",
+    nav_button: "text-gray-500 hover:text-gray-400 transition-colors",
+    nav_button_next: "absolute right-1",
+    table: "w-full border-collapse space-y-1",
+    head_row: "flex justify-between",
+    head_cell: "text-muted-foreground w-9 font-normal text-[0.8rem] text-center",
+    row: "flex w-full mt-2 justify-between",
+    cell: cn(
+      "h-9 w-9 text-center text-sm p-0 relative",
+      "focus-within:relative focus-within:z-20",
+      "[&:has([aria-selected])]:bg-gray-100 dark:[&:has([aria-selected])]:bg-gray-800/30",
+      "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
+    ),
+    day_selected: cn(
+      "bg-gray-600 text-white",
+      "hover:bg-gray-700 hover:text-white",
+      "focus:bg-gray-600 focus:text-white",
+      "dark:bg-gray-600 dark:text-slate-50"
+    ),
+    day_today: "bg-accent text-accent-foreground",
+    day_outside: "text-muted-foreground opacity-50",
+    day_disabled: "text-muted-foreground opacity-50",
+    day_range_middle: cn(
+      "aria-selected:bg-gray-100 aria-selected:text-gray-900",
+      "dark:aria-selected:bg-gray-700/30 dark:aria-selected:text-gray-50"
+    ),
+    day_hidden: "invisible",
+    ...customClassNames,
+  };
+
+  return (
+    <div className="p-4 rounded-2xl w-fit">
+      {mode === "range" && (
+        <>
+          <DayPicker
+            mode="range"
+            showOutsideDays={showOutsideDays}
+            selected={range}
+            onSelect={(value) => {
+              if (onSelect) (onSelect as (range: DateRange | undefined) => void)(value);
+              else setRange(value);
+            }}
+            numberOfMonths={1}
+            pagedNavigation
+            locale={ptBR}
+            classNames={sharedClassNames}
+            weekStartsOn={0}
+          />
+          <div className="text-sm text-zinc-400 mt-2">
+            {range?.from && range?.to
+              ? `Selecionado: ${range.from.toLocaleDateString("pt-BR")} - ${range.to.toLocaleDateString("pt-BR")}`
+              : "Selecione um período"}
+          </div>
+        </>
+      )}
+
+      {mode === "single" && (
+        <>
+          <DayPicker
+            mode="single"
+            showOutsideDays={showOutsideDays}
+            selected={singleDate}
+            onSelect={(value) => {
+              if (onSelect) (onSelect as (date: Date | undefined) => void)(value);
+              else setSingleDate(value);
+            }}
+            numberOfMonths={1}
+            pagedNavigation
+            locale={ptBR}
+            classNames={sharedClassNames}
+            weekStartsOn={0}
+          />
+          <div className="text-sm text-zinc-400 mt-2">
+            {singleDate
+              ? `Data selecionada: ${singleDate.toLocaleDateString("pt-BR")}`
+              : "Selecione uma data"}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
