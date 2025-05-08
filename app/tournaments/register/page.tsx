@@ -25,6 +25,7 @@ import { CardSearch } from "@/components/card-search"
 import { ColorSelector } from "@/components/color-selector"
 import { LoadingOverlay } from "@/components/loading-overlay"
 import api from "@/service/api"
+import { TournamentResponse } from "./types"
 
 export default function RegisterTournamentPage() {
   const { user, isAuthenticated } = useAuth()
@@ -33,7 +34,7 @@ export default function RegisterTournamentPage() {
   const [tournamentLink, setTournamentLink] = useState("")
   const [tournamentRounds, setTournamentsRounds] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [tournamentData, setTournamentData] = useState<any>(null)
+  const [tournamentData, setTournamentData] = useState<TournamentResponse>()
   const [tournamentName, setTournamentName] = useState("")
   const [tournamentType, setTournamentType] = useState("presencial")
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -154,7 +155,17 @@ export default function RegisterTournamentPage() {
         rounds: tournamentRounds,
       })
 
-      setTournamentData(loadTournament.data)
+      const playersWithWinnerProperty = loadTournament.data.players.map((player: any) => ({
+        ...player,
+        isWinner: player.isWinner || false
+      }))
+
+      const updatedTournamentData = {
+        ...loadTournament.data,
+        players: playersWithWinnerProperty
+      }
+
+      setTournamentData(updatedTournamentData)
       setIsLoading(false)
       toast({
         title: "Torneio carregado",
@@ -193,7 +204,7 @@ export default function RegisterTournamentPage() {
         format: "EDH",
         registration_mode: registrationMode,
         rounds: tournamentRounds,
-        players: tournamentData.players
+        players: tournamentData?.players || []
       })
       if (response.status !== 201) {
         toast({
@@ -212,11 +223,11 @@ export default function RegisterTournamentPage() {
     }
     setIsLoading(true)
 
-    const allPlayersHaveResults = tournamentData.players.every(
+    const allPlayersHaveResults = tournamentData?.players.every(
       (player: any) => player.wins > 0 || player.losses > 0 || player.draws > 0,
     )
 
-    const winnerCount = tournamentData.players.filter((player: any) => player.isWinner).length
+    const winnerCount = tournamentData?.players.filter((player: any) => player.isWinner).length
     const hasOneWinner = winnerCount === 1
 
     if (!allPlayersHaveResults) {
@@ -587,9 +598,20 @@ export default function RegisterTournamentPage() {
               <TournamentResultsTable
                 players={tournamentData.players}
                 onUpdateResults={(updatedPlayers) => {
+                  const newWinner = updatedPlayers.find(player => player.isWinner);
+                  const prevWinner = tournamentData.players.find(player => player.isWinner);
+                  if (newWinner && (!prevWinner || newWinner.id !== prevWinner.id)) {
+                    updatedPlayers = updatedPlayers.map(player => ({
+                      ...player,
+                      isWinner: player.id === newWinner.id
+                    }));
+                  }
                   setTournamentData({
                     ...tournamentData,
-                    players: updatedPlayers,
+                    players: updatedPlayers.map((player) => ({
+                      ...player,
+                      decklist: player.decklist || "",
+                    })),
                   })
                 }}
               />
