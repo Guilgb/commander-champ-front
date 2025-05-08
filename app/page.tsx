@@ -58,7 +58,7 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle>Lista de Cards Banidos</CardTitle>
-              <CardDescription>Cards banidos específicos do formato Commander 500</CardDescription>
+              <CardDescription>Cards banidos específicos do formato Commander</CardDescription>
             </CardHeader>
             <CardContent>
               <BannedList />
