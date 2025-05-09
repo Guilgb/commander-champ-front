@@ -45,26 +45,22 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    // Validar nome
     if (!formData.name.trim()) {
       newErrors.name = "Nome é obrigatório"
     }
 
-    // Validar email
     if (!formData.email.trim()) {
       newErrors.email = "Email é obrigatório"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email inválido"
     }
 
-    // Validar senha
     if (!formData.password) {
       newErrors.password = "Senha é obrigatória"
     } else if (formData.password.length < 6) {
       newErrors.password = "A senha deve ter pelo menos 6 caracteres"
     }
 
-    // Validar confirmação de senha
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "As senhas não coincidem"
     }
@@ -83,7 +79,6 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      // Usar a função register do contexto de autenticação
       await register(formData.name, formData.email, formData.password)
 
       toast({
@@ -91,7 +86,6 @@ export default function RegisterPage() {
         description: "Sua conta foi criada e você foi autenticado automaticamente.",
       })
 
-      // Redirecionar para a página inicial
       router.push("/")
     } catch (error) {
       console.error("Erro ao cadastrar:", error)
