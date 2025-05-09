@@ -58,10 +58,10 @@ export default function RegisterTournamentPage() {
   })
 
   const addPlayer = () => {
-    if (!newPlayer.name || !newPlayer.commander || !newPlayer.decklist) {
+    if (!newPlayer.name || !newPlayer.commander || !newPlayer.decklist || !newPlayer.position) {
       toast({
         title: "Campos obrigatórios",
-        description: "Nome do jogador e comandante são obrigatórios.",
+        description: "Nome do jogador, comandante, decklist e posição são obrigatórios.",
         variant: "destructive",
       })
       return
