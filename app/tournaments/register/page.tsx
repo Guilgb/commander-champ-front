@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { TournamentResultsTable } from "@/components/tournament-results-table"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+import { MyDatePicker } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -48,6 +48,7 @@ export default function RegisterTournamentPage() {
     name: "",
     commander: "",
     partner: "",
+    position: 0,
     colors: "",
     decklist: "",
     wins: 0,
@@ -78,6 +79,7 @@ export default function RegisterTournamentPage() {
       name: "",
       commander: "",
       partner: "",
+      position: 0,
       colors: "",
       decklist: "",
       wins: 0,
@@ -193,6 +195,12 @@ export default function RegisterTournamentPage() {
         setIsLoading(false)
         return
       }
+
+      const playersWithPosition = tournamentData?.players.map(player => ({
+        ...player,
+        position: player.position ?? 0,
+      })) || []
+
       const response = await api.post(`/tournaments/`, {
         name: tournamentName,
         type: tournamentType,
@@ -204,7 +212,7 @@ export default function RegisterTournamentPage() {
         format: "EDH",
         registration_mode: registrationMode,
         rounds: tournamentRounds,
-        players: tournamentData?.players || []
+        players: playersWithPosition
       })
       if (response.status !== 201) {
         toast({
@@ -387,19 +395,10 @@ export default function RegisterTournamentPage() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
+                <MyDatePicker
                   mode="range"
-                  defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={setDateRange}
-                  numberOfMonths={2}
-                  disabled={(date) => date < new Date("1900-01-01")}
-                  footer={
-                    <div className="px-4 pb-4 pt-0 text-sm text-muted-foreground">
-                      Selecione a data de início e fim do torneio
-                    </div>
-                  }
                 />
               </PopoverContent>
             </Popover>
@@ -453,6 +452,16 @@ export default function RegisterTournamentPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="player-position">Posição*</Label>
+                    <Input
+                      id="player-position"
+                      type="number"
+                      min="0"
+                      value={newPlayer.position}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, position: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <CardSearch
                       label="Comandante"
                       placeholder="Buscar comandante..."
@@ -475,7 +484,6 @@ export default function RegisterTournamentPage() {
                       onChange={(colors) => setNewPlayer({ ...newPlayer, colors })}
                     />
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="player-wins">Vitórias</Label>
                     <Input
@@ -519,7 +527,6 @@ export default function RegisterTournamentPage() {
                       <Label htmlFor="player-winner">Campeão</Label>
                     </div>
                   </div>
-
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="player-decklist">Decklist*</Label>
                     <Textarea
@@ -596,7 +603,10 @@ export default function RegisterTournamentPage() {
             </CardHeader>
             <CardContent>
               <TournamentResultsTable
-                players={tournamentData.players}
+                players={tournamentData.players.map(player => ({
+                  ...player,
+                  position: player.position ?? 0,
+                }))}
                 onUpdateResults={(updatedPlayers) => {
                   const newWinner = updatedPlayers.find(player => player.isWinner);
                   const prevWinner = tournamentData.players.find(player => player.isWinner);

@@ -9,6 +9,7 @@ export interface TournamentResponse {
 interface Players {
   id: string
   name: string
+  position?: number
   commander: string
   partner?: string
   colors: string

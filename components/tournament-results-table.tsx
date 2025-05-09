@@ -10,9 +10,10 @@ interface Player {
   id: string
   name: string
   commander: string
+  position: number
   partner?: string
   colors: string
-  decklist?: string
+  decklist: string
   wins: number
   losses: number
   draws: number
@@ -58,6 +59,7 @@ export function TournamentResultsTable({
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Posição</TableHead>
           <TableHead>Jogador</TableHead>
           <TableHead>Comandante</TableHead>
           <TableHead>Parceiro</TableHead>
@@ -72,6 +74,7 @@ export function TournamentResultsTable({
       <TableBody>
         {players.map((player) => (
           <TableRow key={player.id}>
+            <TableCell>{player.position}</TableCell>
             <TableCell className="font-medium">{player.name}</TableCell>
             <TableCell>{player.commander}</TableCell>
             <TableCell>{player.partner || "-"}</TableCell>
