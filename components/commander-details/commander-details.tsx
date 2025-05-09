@@ -297,7 +297,7 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                           </div>
                           <CardDescription className="flex items-center gap-2 mt-1">
                             <div className="flex items-center">
-                              <Avatar className="h-6 w-6 mr-1">
+                              <Avatar className="h-6 w-6 mr-3">
                                 <AvatarImage src={deck.owner.avatar} alt={deck.owner.name} />
                                 <AvatarFallback>{deck.owner.name.charAt(0)}</AvatarFallback>
                               </Avatar>
@@ -306,7 +306,11 @@ export function CommanderDetails({ commanderName, cardData, onClose, winrateData
                             <span>•</span>
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1" />
-                              {deck.lastUpdated}
+                              {deck.date}
+                            </div>
+                            <div className="flex items-center ml-auto">
+                              <span className="text-muted-foreground">Posição:</span>
+                              <span className="ml-1 font-bold">{deck.position}</span>
                             </div>
                           </CardDescription>
                         </CardHeader>

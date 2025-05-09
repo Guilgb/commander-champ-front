@@ -3,6 +3,7 @@ export interface CommanderRankingResponse {
   name: string;
   username: string;
   commander: string;
+  champion: number;
   winrate: number;
   wins: number;
   losses: number;

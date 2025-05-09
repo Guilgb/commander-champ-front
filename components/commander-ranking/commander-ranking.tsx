@@ -46,6 +46,7 @@ export function CommanderRanking() {
           losses: tournament.losses,
           draws: tournament.draws,
           entries: tournament.entries,
+          champion: tournament.champion,
           colors: tournament.colors,
           partner: tournament.partner,
         }))
@@ -55,7 +56,6 @@ export function CommanderRanking() {
         console.error("Erro ao carregar dados de torneios:", error);
       });
   }, []);
-
   useEffect(() => {
     if (commanderRankingData.length === 0) return;
 
@@ -95,6 +95,9 @@ export function CommanderRanking() {
     switch (sortBy) {
       case "winrate":
         comparison = a.winrate - b.winrate
+        break
+      case "champion":
+        comparison = a.champion - b.champion
         break
       case "wins":
         comparison = a.wins - b.wins
@@ -195,6 +198,7 @@ export function CommanderRanking() {
                 <SelectItem value="wins">Vitórias</SelectItem>
                 <SelectItem value="tournaments">Entradas</SelectItem>
                 <SelectItem value="name">Nome</SelectItem>
+                <SelectItem value="champion">Campeão</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
@@ -260,6 +264,7 @@ export function CommanderRanking() {
                 <TableHead>Partner</TableHead>
                 <TableHead className="text-right">Winrate</TableHead>
                 <TableHead className="text-right">V/D/E</TableHead>
+                <TableHead className="text-right">Campeão</TableHead>
                 <TableHead className="text-right">Entradas</TableHead>
               </TableRow>
             </TableHeader>
@@ -339,6 +344,7 @@ export function CommanderRanking() {
                     <TableCell className="text-right">
                       {commander.wins}/{commander.losses}/{commander.draws}
                     </TableCell>
+                    <TableCell className="text-right">{commander.champion}</TableCell>
                     <TableCell className="text-right">{commander.entries}</TableCell>
                   </TableRow>
                 ))

@@ -17,6 +17,8 @@ export interface CommanderDeck {
   name: string
   commander: string
   owner: DeckOwner
+  date: string
+  position: number
   decklist: string;
   winrate: number
   wins: number
