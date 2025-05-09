@@ -9,3 +9,15 @@ export interface CardDetailsProps {
     percentage: number
   }
 }
+
+export interface CardsDataResponse {
+  card_name: string
+  commander: string
+  color: string[]
+  winrate: string
+  popularityDatas: {
+    decks_card_count: number
+    decks_count: number
+    use_percent: number
+  }
+}

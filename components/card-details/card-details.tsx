@@ -6,15 +6,32 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { getCardImageUrl, getCardNormalImageUrl } from "@/lib/scryfall"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CardDetailsProps } from "./types"
+import { CardDetailsProps, CardsDataResponse } from "./types"
+import api from "@/service/api"
+import { useEffect, useState } from "react"
 
 
 export function CardDetails({ cardName, cardData, onClose, popularityData }: CardDetailsProps) {
+  const [cardsData, setCardsData] = useState<CardsDataResponse[]>([])
   if (!cardData) {
     return null
   }
 
-  // Função para formatar o texto do card com quebras de linha
+  useEffect(() => {
+    async function fetchCardData() {
+      try {
+        const response = await api.post(`/cards/popular-decks`, {
+          card_name: cardName,
+        })
+        setCardsData(response.data)
+      } catch (error) {
+        console.error("Erro ao buscar dados do card:", error)
+      }
+    }
+
+    fetchCardData()
+  }, [cardsData])
+
   const formatOracleText = (text?: string) => {
     if (!text) return null
     return text.split("\n").map((line, i) => (
@@ -24,7 +41,6 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
     ))
   }
 
-  // Função para obter o ícone de cor
   const getColorIcon = (color: string) => {
     const colorIcons: Record<string, { symbol: string; bg: string; text: string }> = {
       W: { symbol: "☀️", bg: "bg-amber-50", text: "text-amber-900" },
@@ -108,7 +124,6 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
                   <div className="flex space-x-4">
                     {cardData.prices.usd && <Badge variant="outline">USD ${cardData.prices.usd}</Badge>}
                     {cardData.prices.eur && <Badge variant="outline">EUR €{cardData.prices.eur}</Badge>}
-                    {/* Preço estimado em BRL (simulado) */}
                     {cardData.prices.usd && (
                       <Badge variant="outline">BRL R${(Number.parseFloat(cardData.prices.usd) * 5.0).toFixed(2)}</Badge>
                     )}
@@ -146,7 +161,7 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
                   </CardContent>
                 </Card>
 
-                <Card>
+                {/* <Card>
                   <CardHeader>
                     <CardTitle>Uso por Cores</CardTitle>
                     <CardDescription>Como este card é utilizado em diferentes identidades de cor</CardDescription>
@@ -176,7 +191,7 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </Card> */}
               </>
             ) : (
               <Card>
@@ -195,50 +210,19 @@ export function CardDetails({ cardName, cardData, onClose, popularityData }: Car
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Comandante 1 */}
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base">Atraxa, Praetors' Voice</CardTitle>
-                      <CardDescription>85% dos decks incluem este card</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="outline">WUBG</Badge>
-                        <Badge variant="outline">Proliferate</Badge>
-                        <Badge variant="outline">69% Winrate</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Comandante 2 */}
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base">Kykar, Wind's Fury</CardTitle>
-                      <CardDescription>78% dos decks incluem este card</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="outline">WUR</Badge>
-                        <Badge variant="outline">Spellslinger</Badge>
-                        <Badge variant="outline">62% Winrate</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Comandante 3 */}
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base">Brago, King Eternal</CardTitle>
-                      <CardDescription>72% dos decks incluem este card</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="outline">WU</Badge>
-                        <Badge variant="outline">Blink</Badge>
-                        <Badge variant="outline">58% Winrate</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {cardsData.map((card, index) => (
+                    <Card key={index}>
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-base">{card.commander}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0">
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <Badge variant="outline">Cores: {card.color}</Badge>
+                          <Badge variant="outline">Winrate: {card.winrate}</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
