@@ -333,6 +333,12 @@ export default function RegisterTournamentPage() {
                     Registro Manual
                   </Label>
                 </div>
+                <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                  <RadioGroupItem value="ligamagic" id="ligamagic" />
+                  <Label htmlFor="ligamagic" className="cursor-pointer">
+                    Via Liga Magic
+                  </Label>
+                </div>
               </RadioGroup>
             </div>
           </div>
@@ -422,7 +428,160 @@ export default function RegisterTournamentPage() {
                 onChange={(e) => setTournamentsRounds(Number(e.target.value))}
               />
             </div>
-          ) : (
+          ) : registrationMode === "ligamagic" ? (
+            <div className="space-y-4">
+              <Label htmlFor="tournament-link">Link do Torneio</Label>
+              <Input
+                id="tournament-link"
+                placeholder="https://topdeck.gg/tournaments/..."
+                value={tournamentLink}
+                onChange={(e) => setTournamentLink(e.target.value)}
+              />
+              <Label htmlFor="tournament-rounds">Numero de Rodadas</Label>
+              <Input
+                id="tournament-rounds"
+                type="number"
+                min="0"
+                value={tournamentRounds}
+                onChange={(e) => setTournamentsRounds(Number(e.target.value))}
+              />
+              <div className="border rounded-md p-4">
+                <h3 className="text-lg font-medium mb-4">Adicionar Jogadores</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="player-name">Nome do Jogador*</Label>
+                    <Input
+                      id="player-name"
+                      placeholder="Nome do jogador"
+                      value={newPlayer.name}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-position">Posição*</Label>
+                    <Input
+                      id="player-position"
+                      type="number"
+                      min="0"
+                      value={newPlayer.position}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, position: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <CardSearch
+                      label="Comandante"
+                      placeholder="Buscar comandante..."
+                      value={newPlayer.commander}
+                      onChange={handleCommanderSelect}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <CardSearch
+                      label="Parceiro (opcional)"
+                      placeholder="Buscar parceiro..."
+                      value={newPlayer.partner}
+                      onChange={handlePartnerSelect}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <ColorSelector
+                      value={newPlayer.colors}
+                      onChange={(colors) => setNewPlayer({ ...newPlayer, colors })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-wins">Vitórias</Label>
+                    <Input
+                      id="player-wins"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.wins}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, wins: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-losses">Derrotas</Label>
+                    <Input
+                      id="player-losses"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.losses}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, losses: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="player-draws">Empates</Label>
+                    <Input
+                      id="player-draws"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newPlayer.draws}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, draws: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 h-full pt-6">
+                      <Checkbox
+                        id="player-winner"
+                        checked={newPlayer.isWinner}
+                        onCheckedChange={(checked) => setNewPlayer({ ...newPlayer, isWinner: checked as boolean })}
+                      />
+                      <Label htmlFor="player-winner">Campeão</Label>
+                    </div>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="player-decklist">Decklist*</Label>
+                    <Textarea
+                      id="player-decklist"
+                      placeholder="Cole a decklist aqui..."
+                      value={newPlayer.decklist}
+                      onChange={(e) => setNewPlayer({ ...newPlayer, decklist: e.target.value })}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                </div>
+                <Button onClick={addPlayer}>Adicionar Jogador</Button>
+              </div>
+
+              {manualPlayers.length > 0 && (
+                <div className="border rounded-md p-4">
+                  <h3 className="text-lg font-medium mb-4">Jogadores Adicionados ({manualPlayers.length})</h3>
+                  <div className="space-y-4">
+                    {manualPlayers.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between border-b pb-2">
+                        <div>
+                          <p className="font-medium">{player.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Comandante: {player.commander}
+                            {player.partner && ` / Parceiro: ${player.partner}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Cores: {player.colors || "N/A"}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Resultados: {player.wins}W / {player.losses}L / {player.draws}D
+                            {player.isWinner && " • Campeão"}
+                          </p>
+                          {player.decklist && (
+                            <details className="mt-1">
+                              <summary className="text-sm cursor-pointer hover:text-primary">Ver decklist</summary>
+                              <pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-auto max-h-[200px]">
+                                {player.decklist}
+                              </pre>
+                            </details>
+                          )}
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => removePlayer(player.id)}>
+                          Remover
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>) : (
             <div className="space-y-4">
               <Label htmlFor="tournament-link">Link do Torneio</Label>
               <Input
@@ -582,6 +741,10 @@ export default function RegisterTournamentPage() {
           {registrationMode === "topdeck" ? (
             <Button onClick={handleFetchTournament} disabled={isLoading}>
               {isLoading ? "Carregando..." : "Carregar Dados do Torneio"}
+            </Button>
+          ) : registrationMode === "ligamagic" ? (
+            <Button onClick={useManualPlayers} disabled={manualPlayers.length < 4}>
+              {isLoading ? "Carregando..." : "Criar Torneio"}
             </Button>
           ) : (
             <Button onClick={useManualPlayers} disabled={manualPlayers.length < 4}>
