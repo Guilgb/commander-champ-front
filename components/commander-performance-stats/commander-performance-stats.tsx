@@ -82,7 +82,7 @@ export function CommanderPerformanceStats() {
               const [day, month, year] = dateString.split('/').map(Number);
               return new Date(year, month - 1, day);
             };
-  
+
             const itemDate = parseDate(item.date);
             const startDate = new Date(start_date);
             const endDate = new Date(end_date);
@@ -96,7 +96,17 @@ export function CommanderPerformanceStats() {
               return false;
             }
           }
+          if (title == 'top4' && item.top4 === 0) {
+            return false;
+          }
 
+          if (title == 'top8' && item.top8 === 0) {
+            return false;
+          }
+
+          if (title == 'champion' && item.champion === 0) {
+            return false;
+          }
           return true
         })
 
