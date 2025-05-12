@@ -160,9 +160,9 @@ export function CommanderPerformanceStats() {
     } else {
       return {
         name: commander.commander,
-        top8: Math.round((commander.top8 / commander.entries) * 100),
-        top4: Math.round((commander.top4 / commander.entries) * 100),
-        champion: Math.round((commander.champion / commander.entries) * 100),
+        top8: commander.entries > 0 ? Math.round((commander.top8 / commander.entries) * 100) : 0,
+        top4: commander.entries > 0 ? Math.round((commander.top4 / commander.entries) * 100) : 0,
+        champion: commander.entries > 0 ? Math.round((commander.champion / commander.entries) * 100) : 0,
       }
     }
   })
