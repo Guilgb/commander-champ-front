@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { MyDatePicker } from "./calendar"
-
+// todo: remove this when date-fns is updated to 2.29.0
 interface DatePickerProps {
   date?: Date
   setDate: (date: Date | undefined) => void
