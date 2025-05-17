@@ -181,7 +181,7 @@ export default function EditTournamentPage() {
     setIsDeleteLoading(true)
 
     try {
-      //todo implmenter o delete tournament
+      //todo implmenter o delete tournaments
       // Em um ambiente real, você faria uma chamada à API
       // Aqui estamos simulando a exclusão
       await new Promise((resolve) => setTimeout(resolve, 1500))
