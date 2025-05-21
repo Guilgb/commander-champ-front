@@ -225,11 +225,11 @@ export function CommanderPerformanceStats() {
     const partnerCard = partner ? cardData[partner] : null
 
     // Ajustar tamanhos para mobile usando o hook de tamanho da janela
-    const avatarSize = isMobile ? "h-8 w-8" : "h-12 w-12"
-    const foreignWidth = hasPartner ? (isMobile ? 70 : 100) : (isMobile ? 40 : 50)
-    const foreignHeight = isMobile ? 40 : 60
-    const foreignX = hasPartner ? (isMobile ? -60 : -80) : (isMobile ? -45 : -60)
-    const foreignY = isMobile ? -20 : -30
+    const avatarSize = isMobile ? "h-6 w-6" : "h-10 w-10"
+    const foreignWidth = hasPartner ? (isMobile ? 60 : 85) : (isMobile ? 35 : 45)
+    const foreignHeight = isMobile ? 35 : 50
+    const foreignX = hasPartner ? (isMobile ? -50 : -70) : (isMobile ? -40 : -55)
+    const foreignY = isMobile ? -18 : -25
 
     return (
       <g transform={`translate(${x},${y})`}>
@@ -246,7 +246,7 @@ export function CommanderPerformanceStats() {
               )}
             </div>
             {hasPartner && (
-              <div className={`absolute ${isMobile ? "top-2 left-5" : "top-3 left-8"}`}>
+              <div className={`absolute ${isMobile ? "top-1 left-4" : "top-2 left-6"}`}>
                 {partnerCard ? (
                   <Avatar className={`${avatarSize} border-2 border-primary`}>
                     <AvatarImage src={getCardImageUrl(partnerCard, "small")} alt={partner} className="object-cover" />
