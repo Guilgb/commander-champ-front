@@ -1,6 +1,7 @@
 export type CommanderPerformaceResponse = {
   id: string
   commander: string
+  partner: string
   tournament_id: number
   entries: number
   top8: number

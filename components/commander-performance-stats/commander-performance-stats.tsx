@@ -131,15 +131,22 @@ export function CommanderPerformanceStats() {
 
     async function fetchCardData() {
       setLoading(true)
-      const commanderNames = commanderPerformanceData.map((item) => item.commander)
       const cardDataMap: Record<string, ScryfallCard> = {}
 
-      for (const name of commanderNames) {
+      for (const item of commanderPerformanceData) {
         try {
-          const formattedName = name.includes("+") ? name.split("+")[0].trim() : name;
-          const card = await getCardByName(formattedName);
+          // Buscar o comandante principal
+          const card = await getCardByName(item.commander);
           if (card) {
-            cardDataMap[name] = card
+            cardDataMap[item.commander] = card
+          }
+
+          // Se houver partner, buscar também
+          if (item.partner) {
+            const partnerCard = await getCardByName(item.partner);
+            if (partnerCard) {
+              cardDataMap[item.partner] = partnerCard
+            }
           }
         } catch (error) {
           console.error(`Error fetching data for ${name}:`, error)
@@ -155,16 +162,17 @@ export function CommanderPerformanceStats() {
 
   // Preparar dados para o gráfico
   const chartData = commanderPerformanceData.map((commander) => {
+    const commanderName = commander.partner ? `${commander.commander} + ${commander.partner}` : commander.commander;
     if (statType === "absolute") {
       return {
-        name: commander.commander,
+        name: commanderName,
         top8: commander.top8,
         top4: commander.top4,
         champion: commander.champion,
       }
     } else {
       return {
-        name: commander.commander,
+        name: commanderName,
         top8: commander.entries > 0 ? Math.round((commander.top8 / commander.entries) * 100) : 0,
         top4: commander.entries > 0 ? Math.round((commander.top4 / commander.entries) * 100) : 0,
         champion: commander.entries > 0 ? Math.round((commander.champion / commander.entries) * 100) : 0,
@@ -175,19 +183,38 @@ export function CommanderPerformanceStats() {
   const renderCustomAxisTick = (props: any) => {
     const { x, y, payload } = props
     const commanderName = payload.value
-    const card = cardData[commanderName]
+    const hasPartner = commanderName.includes("+")
+    const [mainCommander, partner] = hasPartner ? commanderName.split("+").map(name => name.trim()) : [commanderName, null]
+    const mainCard = cardData[mainCommander]
+    const partnerCard = partner ? cardData[partner] : null
 
     return (
       <g transform={`translate(${x},${y})`}>
-        <foreignObject width={40} height={40} x={-45} y={-20}>
-          {card ? (
-            <Avatar className="h-10 w-10 border-2 border-primary">
-              <AvatarImage src={getCardImageUrl(card, "small")} alt={commanderName} className="object-cover" />
-              <AvatarFallback>{commanderName.charAt(0)}</AvatarFallback>
-            </Avatar>
-          ) : (
-            <Skeleton className="h-10 w-10 rounded-full" />
-          )}
+        <foreignObject width={hasPartner ? 100 : 50} height={60} x={hasPartner ? -80 : -60} y={-30}>
+          <div className="relative">
+            <div className="absolute top-0 left-0">
+              {mainCard ? (
+                <Avatar className="h-12 w-12 border-2 border-primary">
+                  <AvatarImage src={getCardImageUrl(mainCard, "small")} alt={mainCommander} className="object-cover" />
+                  <AvatarFallback>{mainCommander.charAt(0)}</AvatarFallback>
+                </Avatar>
+              ) : (
+                <Skeleton className="h-12 w-12 rounded-full" />
+              )}
+            </div>
+            {hasPartner && (
+              <div className="absolute top-3 left-8">
+                {partnerCard ? (
+                  <Avatar className="h-12 w-12 border-2 border-primary">
+                    <AvatarImage src={getCardImageUrl(partnerCard, "small")} alt={partner} className="object-cover" />
+                    <AvatarFallback>{partner?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                )}
+              </div>
+            )}
+          </div>
         </foreignObject>
       </g>
     )
