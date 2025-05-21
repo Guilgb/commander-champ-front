@@ -13,17 +13,48 @@ import api from "@/service/api"
 import { useCommanderFilters } from "@/app/contexts/filters-context"
 import { isValid } from "date-fns"
 
+// Hook para detectar o tamanho da tela
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  });
+
+  useEffect(() => {
+    // Handler para chamar ao redimensionar a janela
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+
+    // Adicionar event listener
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+
+      // Chamar handler imediatamente para que o estado reflita o tamanho inicial da janela
+      handleResize();
+
+      // Remover event listener ao desmontar
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []); // Array vazio garante que o efeito só é executado na montagem e desmontagem
+
+  return windowSize;
+}
+
 
 // Componente personalizado para o tooltip
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-background border p-2 rounded-md shadow-md">
-        <p className="font-bold">{label}</p>
+      <div className="bg-background border p-2 rounded-md shadow-md text-sm">
+        <p className="font-bold text-xs md:text-sm">{label}</p>
         {payload.map((entry: any, index: number) => (
-          <div key={`item-${index}`} className="flex items-center gap-2">
-            <div className="w-3 h-3" style={{ backgroundColor: entry.color }}></div>
-            <p style={{ color: entry.color }}>
+          <div key={`item-${index}`} className="flex items-center gap-1 md:gap-2">
+            <div className="w-2 h-2 md:w-3 md:h-3" style={{ backgroundColor: entry.color }}></div>
+            <p style={{ color: entry.color }} className="text-xs md:text-sm whitespace-nowrap">
               {entry.name}: {entry.value}
             </p>
           </div>
@@ -39,6 +70,8 @@ export function CommanderPerformanceStats() {
   const [loading, setLoading] = useState(true)
   const [statType, setStatType] = useState<"absolute" | "percentage">("absolute")
   const [commanderPerformanceData, setcommanderPerformanceData] = useState<CommanderPerformaceResponse[]>([])
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
 
   const { filters } = useCommanderFilters()
   useEffect(() => {
@@ -115,8 +148,11 @@ export function CommanderPerformanceStats() {
           }
           return true
         })
-        const top10FilteredData = filteredData.slice(0, 10);
-        setcommanderPerformanceData(top10FilteredData)
+
+        // Limitar o número de comandantes exibidos com base no tamanho da tela
+        const maxItems = width < 768 ? 6 : 10;
+        const topFilteredData = filteredData.slice(0, maxItems);
+        setcommanderPerformanceData(topFilteredData)
       } catch (error) {
         console.error("Error fetching commander performance data:", error)
       } finally {
@@ -124,7 +160,7 @@ export function CommanderPerformanceStats() {
       }
     }
     fetchCommanderPerformanceData()
-  }, [filters]);
+  }, [filters, width]);
 
   useEffect(() => {
     if (commanderPerformanceData.length === 0) return;
@@ -181,36 +217,43 @@ export function CommanderPerformanceStats() {
   })
 
   const renderCustomAxisTick = (props: any) => {
-    const { x, y, payload } = props
+    const { x, y, payload, viewBox } = props
     const commanderName = payload.value
     const hasPartner = commanderName.includes("+")
     const [mainCommander, partner] = hasPartner ? commanderName.split("+").map(name => name.trim()) : [commanderName, null]
     const mainCard = cardData[mainCommander]
     const partnerCard = partner ? cardData[partner] : null
 
+    // Ajustar tamanhos para mobile usando o hook de tamanho da janela
+    const avatarSize = isMobile ? "h-8 w-8" : "h-12 w-12"
+    const foreignWidth = hasPartner ? (isMobile ? 70 : 100) : (isMobile ? 40 : 50)
+    const foreignHeight = isMobile ? 40 : 60
+    const foreignX = hasPartner ? (isMobile ? -60 : -80) : (isMobile ? -45 : -60)
+    const foreignY = isMobile ? -20 : -30
+
     return (
       <g transform={`translate(${x},${y})`}>
-        <foreignObject width={hasPartner ? 100 : 50} height={60} x={hasPartner ? -80 : -60} y={-30}>
+        <foreignObject width={foreignWidth} height={foreignHeight} x={foreignX} y={foreignY}>
           <div className="relative">
             <div className="absolute top-0 left-0">
               {mainCard ? (
-                <Avatar className="h-12 w-12 border-2 border-primary">
+                <Avatar className={`${avatarSize} border-2 border-primary`}>
                   <AvatarImage src={getCardImageUrl(mainCard, "small")} alt={mainCommander} className="object-cover" />
                   <AvatarFallback>{mainCommander.charAt(0)}</AvatarFallback>
                 </Avatar>
               ) : (
-                <Skeleton className="h-12 w-12 rounded-full" />
+                <Skeleton className={avatarSize + " rounded-full"} />
               )}
             </div>
             {hasPartner && (
-              <div className="absolute top-3 left-8">
+              <div className={`absolute ${isMobile ? "top-2 left-5" : "top-3 left-8"}`}>
                 {partnerCard ? (
-                  <Avatar className="h-12 w-12 border-2 border-primary">
+                  <Avatar className={`${avatarSize} border-2 border-primary`}>
                     <AvatarImage src={getCardImageUrl(partnerCard, "small")} alt={partner} className="object-cover" />
                     <AvatarFallback>{partner?.charAt(0)}</AvatarFallback>
                   </Avatar>
                 ) : (
-                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <Skeleton className={avatarSize + " rounded-full"} />
                 )}
               </div>
             )}
@@ -228,28 +271,37 @@ export function CommanderPerformanceStats() {
             <CardTitle>Desempenho de Comandantes em Torneios</CardTitle>
             <CardDescription>Análise de resultados em torneios por comandante</CardDescription>
           </div>
-          <div className="flex space-x-2">
-            <Button variant={statType === "absolute" ? "default" : "outline"} onClick={() => setStatType("absolute")}>
-              Valores Absolutos
+          <div className="flex space-x-1 md:space-x-2">
+            <Button
+              variant={statType === "absolute" ? "default" : "outline"}
+              onClick={() => setStatType("absolute")}
+              size="sm"
+              className="text-xs md:text-sm"
+            >
+              <span className="hidden md:inline">Valores Absolutos</span>
+              <span className="md:hidden">Absolutos</span>
             </Button>
             <Button
               variant={statType === "percentage" ? "default" : "outline"}
               onClick={() => setStatType("percentage")}
+              size="sm"
+              className="text-xs md:text-sm"
             >
-              Porcentagem
+              <span className="hidden md:inline">Porcentagem</span>
+              <span className="md:hidden">%</span>
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-[400px] border border-border rounded-md p-4">
+        <div className="w-full h-[300px] md:h-[400px] border border-border rounded-md p-2 md:p-4">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} layout="vertical">
+            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" domain={statType === "percentage" ? [0, 100] : [0, "auto"]} />
-              <YAxis dataKey="name" type="category" width={90} tick={renderCustomAxisTick} interval={0} />
+              <XAxis type="number" domain={statType === "percentage" ? [0, 100] : [0, "auto"]} tick={{ fontSize: 12 }} />
+              <YAxis dataKey="name" type="category" width={isMobile ? 70 : 90} tick={renderCustomAxisTick} interval={0} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="top8" name="Top 8" fill="#8884d8" />
               <Bar dataKey="top4" name="Top 4" fill="#82ca9d" />
               <Bar dataKey="champion" name="Campeão" fill="#ff7300" />
