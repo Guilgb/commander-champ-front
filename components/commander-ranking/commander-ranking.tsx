@@ -28,6 +28,10 @@ export function CommanderRanking() {
   const [showFilters, setShowFilters] = useState(false)
   const [minWinrate, setMinWinrate] = useState(0)
   const [maxWinrate, setMaxWinrate] = useState(100)
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [minCmc, setMinCmc] = useState(0)
+  const [maxCmc, setMaxCmc] = useState(20)
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
@@ -87,7 +91,10 @@ export function CommanderRanking() {
       commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
       commander.winrate >= minWinrate &&
       commander.winrate <= maxWinrate &&
-      commander.commander !== '-',
+      commander.commander !== '-' &&
+      (selectedColors.length === 0 || commander.colors === selectedColors.join('')) &&
+      (cardData[commander.commander]?.cmc >= minCmc && cardData[commander.commander]?.cmc <= maxCmc) &&
+      (selectedTypes.length === 0 || (cardData[commander.commander]?.type_line && selectedTypes.some(type => cardData[commander.commander]?.type_line.toLowerCase().includes(type.toLowerCase()))))
   )
   const sortedCommanders = [...filteredCommanders].sort((a, b) => {
     let comparison = 0
@@ -215,24 +222,92 @@ export function CommanderRanking() {
 
         {showFilters && (
           <div className="space-y-4 p-4 bg-muted/50 rounded-md mb-6">
-            <div className="space-y-2">
-              <div className="flex justify-between">
+            <div className="space-y-4">
+              <div className="space-y-2">
                 <Label htmlFor="winrate-range">
                   Winrate: {minWinrate}% - {maxWinrate}%
                 </Label>
+                <div className="pt-2">
+                  <Slider
+                    id="winrate-range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={[minWinrate, maxWinrate]}
+                    onValueChange={(value) => {
+                      setMinWinrate(value[0])
+                      setMaxWinrate(value[1])
+                    }}
+                  />
+                </div>
               </div>
-              <div className="pt-4">
-                <Slider
-                  id="winrate-range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={[minWinrate, maxWinrate]}
-                  onValueChange={(value) => {
-                    setMinWinrate(value[0])
-                    setMaxWinrate(value[1])
-                  }}
-                />
+
+              <div className="space-y-2">
+                <Label htmlFor="cmc-range">
+                  Custo de Mana: {minCmc} - {maxCmc}
+                </Label>
+                <div className="pt-2">
+                  <Slider
+                    id="cmc-range"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={[minCmc, maxCmc]}
+                    onValueChange={(value) => {
+                      setMinCmc(value[0])
+                      setMaxCmc(value[1])
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Cores</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['W', 'U', 'B', 'R', 'G'].map((color) => (
+                    <Badge
+                      key={color}
+                      variant={selectedColors.includes(color) ? "default" : "outline"}
+                      className={`cursor-pointer ${getColorBadge(color)}`}
+                      onClick={() => {
+                        setSelectedColors((prev) =>
+                          prev.includes(color)
+                            ? prev.filter((c) => c !== color)
+                            : [...prev, color]
+                        )
+                      }}
+                    >
+                      {color}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipos</Label>
+                <Select
+                  value={selectedTypes.join(",")}
+                  onValueChange={(value) => setSelectedTypes(value ? value.split(",") : [])}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione os tipos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      "Creature",
+                      "Instant",
+                      "Sorcery",
+                      "Artifact",
+                      "Enchantment",
+                      "Planeswalker",
+                      "Land"
+                    ].map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -243,6 +318,10 @@ export function CommanderRanking() {
                 onClick={() => {
                   setMinWinrate(0)
                   setMaxWinrate(100)
+                  setMinCmc(0)
+                  setMaxCmc(20)
+                  setSelectedColors([])
+                  setSelectedTypes([])
                   setSearchTerm("")
                   setSortBy("winrate")
                   setSortOrder("desc")
