@@ -4,36 +4,50 @@ import { Coins, Book, FileText, Scale, Clock, Users, Ban, Award, Calculator } fr
 const rules = [
   {
     title: "Limite de Preço",
-    description:
-      "O deck completo, excluindo o comandante, não pode exceder o valor de R$ 500,00 baseado nos preços mínimos da plataforma LigaMagic. O valor do comandante não é contabilizado neste limite nem os terrenos básicos.",
+    description: `O valor máximo do deck, excluindo o(s) comandante(s), deve ser igual ou inferior a R$ 500,00.
+A consulta de valores é realizada pela plataforma Ligamagic, levando em consideração o menor valor para cada carta, onde a coleção ou os adicionais 
+que a carta possua não são considerados.
+`,
     icon: Coins,
     color: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
   },
   {
-    title: "Regras Base de Commander",
+    title: "Regras do Formato",
     description:
-      "Todas as regras oficiais de Commander se aplicam como base, incluindo vida inicial de 40, dano de comandante e singleton. Consulte as regras oficiais para mais detalhes.",
+      `O Commander 500 segue todas as regras estabelecidas para o formato Commander com o adicional de limitação de valor do baralho. Todas as regras 
+oficiais podem ser encontradas através da página de regras da Wizards (colocar o link na palavra "wizards" https://magic.wizards.com/en/rules) no 
+documento de regras Comprehensive Rules(colocar em itálico "Comprehensive Rules") no item 9, subitem 903.Você também pode conferir as regras 
+do formato Commander (inserir link na expressão "formato commander" https://mtg.wiki/page/Commander_(format)  ), e todas as outras regras, através
+da MTG Wiki (colocar o link https://mtg.wiki/page/Main_Page na palavra "MTG Wiki").`,
     icon: Book,
     color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
   },
   {
     title: "Validade das Listas",
     description:
-      "A verificação dos preços e validade das listas segue três modelos principais:\n\n- Semanal: Lista com até 7 dias antes do evento\n- Mensal: Lista com até 30 dias antes do evento\n- Semestral: Janeiro-Junho ou Julho-Dezembro",
+      `Por o Commander 500 ser um formato onde o valor do seu baralho é importante, é necessária a validação de sua lista baseado na data de criação da mesma. 
+Cada evento pode possuir uma janela de validação específica, recomendamos ler as regras do(s) evento(s) que pretende participar ou conversar diretamente
+com a organização para que seja informada a data de validade para as listas. Alguns modelos de datas utilizados com maior frequência são:
+
+    - Semanal: Listas criadas com até 07 dias anteriores ao evento; 
+    - Mensal: Listas criadas com até 30 dias anteriores ao evento;
+    - Temporadas: Listas criadas entre 01/Janeiro e 30/Junho são válidas para eventos iniciados dentro deste mesmo período. O mesmo se aplica para 
+      01/Julho a 31/Dezembro.`,
     icon: Clock,
     color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
   },
   {
     title: "Verificação de Preços",
     description:
-      "Os preços são verificados usando o valor mínimo da LigaMagic no momento da criação da lista. Cartas que ultrapassem o limite durante o período de validade da lista não afetam sua legalidade.",
+      `Os preços das listas são verificados utilizando o valor mínimo registrado no Preço Original da lista na plataforma Ligamagic.
+Qualquer variação após a criação da lista não afeta o seu valor original, e por consequência, não afetam sua legalidade.`,
     icon: Calculator,
     color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
   },
   {
     title: "Banimentos Específicos",
     description:
-      "O formato não possui banimentos específicos além dos banimentos do commander. Consulte a lista completa na aba de banimentos.",
+      `O Commander 500 segue a lista de Banidas e Restritas do formato Commander disponível no link https://magic.wizards.com/en/banned-restricted-list.`,
     icon: Ban,
     color: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   },
