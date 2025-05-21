@@ -107,9 +107,14 @@ export function CommanderPerformanceStats() {
           if (title == 'champion' && item.champion === 0) {
             return false;
           }
+
+          if (selectedTournaments && selectedTournaments.length > 0) {
+            if (!item.tournament_ids || !selectedTournaments.some(tournamentId => item.tournament_ids.includes(tournamentId))) {
+              return false;
+            }
+          }
           return true
         })
-        console.log(filteredData)
         const top10FilteredData = filteredData.slice(0, 10);
         setcommanderPerformanceData(top10FilteredData)
       } catch (error) {

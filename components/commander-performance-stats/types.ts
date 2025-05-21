@@ -14,7 +14,7 @@ export interface ItensResponse {
   id: number;
   commander: string;
   partner: string;
-  tournament_id: number;
+  tournament_ids: number[];
   entries: number;
   top8: number;
   top4: number;
@@ -22,4 +22,6 @@ export interface ItensResponse {
   cmc: number;
   colors: string[];
   date: string;
+  top8_percentage: number;
+  top4_percentage: number;
 }
