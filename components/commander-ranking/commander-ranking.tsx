@@ -86,9 +86,10 @@ export function CommanderRanking() {
     (commander) =>
       commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
       commander.winrate >= minWinrate &&
-      commander.winrate <= maxWinrate,
+      commander.winrate <= maxWinrate &&
+      commander.commander !== '-',
   )
-
+  console.log(filteredCommanders)
   const sortedCommanders = [...filteredCommanders].sort((a, b) => {
     let comparison = 0
 
