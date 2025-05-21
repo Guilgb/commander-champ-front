@@ -37,6 +37,23 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="w-full">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-4">
+            <h2 className="text-2xl font-bold tracking-tight">Conheça o Commander 500</h2>
+            <div className="w-full max-w-3xl aspect-video rounded-lg overflow-hidden">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/wYno1Vq4q5o"
+                title="Introdução ao Commander 500"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Tabs defaultValue="rules" className="w-full" >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="rules">Regras</TabsTrigger>
