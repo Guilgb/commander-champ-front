@@ -44,7 +44,7 @@ export default function Home() {
             <div className="w-full max-w-3xl aspect-video rounded-lg overflow-hidden">
               <iframe
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/wYno1Vq4q5o"
+                src="https://www.youtube.com/embed/NtkUeQRzjhs"
                 title="Introdução ao Commander 500"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
