@@ -57,7 +57,6 @@ export function PopularCardsChart() {
           const endDate = new Date(end_date);
 
           if (isNaN(itemDate.getTime()) || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            console.warn("Invalid date detected in filtering:", { date, start_date, end_date });
             return false;
           }
 
