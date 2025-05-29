@@ -295,12 +295,7 @@ export function CommanderRanking() {
                   <SelectContent>
                     {[
                       "Creature",
-                      "Instant",
-                      "Sorcery",
-                      "Artifact",
-                      "Enchantment",
                       "Planeswalker",
-                      "Land"
                     ].map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
