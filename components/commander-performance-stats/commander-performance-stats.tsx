@@ -90,7 +90,7 @@ export function CommanderPerformanceStats() {
             return false;
           }
 
-          if (item.commander === '- + -') {
+          if (item.commander === '-') {
             return false;
           }
 
@@ -148,7 +148,7 @@ export function CommanderPerformanceStats() {
           }
           return true
         })
-
+        console.log(filteredData)
         // Limitar o número de comandantes exibidos com base no tamanho da tela
         const maxItems = width < 768 ? 6 : 10;
         const topFilteredData = filteredData.slice(0, maxItems);
