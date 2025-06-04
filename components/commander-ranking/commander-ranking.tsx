@@ -20,6 +20,7 @@ import api from "@/service/api"
 export function CommanderRanking() {
   const [cardData, setCardData] = useState<Record<string, ScryfallCard>>({})
   const [loading, setLoading] = useState(true)
+  const [loadingCards, setLoadingCards] = useState<Record<string, boolean>>({})
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("winrate")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -64,22 +65,43 @@ export function CommanderRanking() {
     if (commanderRankingData.length === 0) return;
 
     async function fetchCardData() {
+      if (commanderRankingData.length === 0) return;
       setLoading(true);
-      const commanderNames = commanderRankingData.map((item) => item.commander);
-      const cardDataMap: Record<string, ScryfallCard> = {};
+      const uniqueCommanders = Array.from(new Set(commanderRankingData.map(c => c.commander)));
+      const newLoadingCards: Record<string, boolean> = {};
+      uniqueCommanders.forEach(commander => {
+        newLoadingCards[commander] = true;
+      });
+      setLoadingCards(newLoadingCards);
 
-      for (const commander of commanderNames) {
-        try {
-          const card = await getCardByName(commander);
-          if (card) {
-            cardDataMap[commander] = card;
-          }
-        } catch (error) {
-          console.error(`Error fetching data for ${commander}:`, error);
-        }
+      const batchSize = 10;
+      const batches = [];
+
+      for (let i = 0; i < uniqueCommanders.length; i += batchSize) {
+        batches.push(uniqueCommanders.slice(i, i + batchSize));
       }
 
-      setCardData(cardDataMap);
+      for (const batch of batches) {
+        try {
+          for (const commander of batch) {
+            try {
+              const card = await getCardByName(commander);
+              if (card) {
+                setCardData(prev => ({ ...prev, [commander]: card }));
+              }
+            } catch (error) {
+              console.error(`Error fetching data for ${commander}:`, error);
+            } finally {
+              setLoadingCards(prev => ({ ...prev, [commander]: false }));
+            }
+          }
+        } catch (error) {
+          console.error('Batch error:', error);
+          batch.forEach(commander => {
+            setLoadingCards(prev => ({ ...prev, [commander]: false }));
+          });
+        }
+      }
       setLoading(false);
     }
 
@@ -93,7 +115,9 @@ export function CommanderRanking() {
       commander.winrate <= maxWinrate &&
       commander.commander !== '-' &&
       (selectedColors.length === 0 || commander.colors === selectedColors.join('')) &&
-      (cardData[commander.commander]?.cmc >= minCmc && cardData[commander.commander]?.cmc <= maxCmc) &&
+      (cardData[commander.commander]?.mana_cost !== undefined ? 
+        (cardData[commander.commander] as any)?.cmc >= minCmc && 
+        (cardData[commander.commander] as any)?.cmc <= maxCmc : true) &&
       (selectedTypes.length === 0 || (cardData[commander.commander]?.type_line && selectedTypes.some(type => cardData[commander.commander]?.type_line.toLowerCase().includes(type.toLowerCase()))))
   )
   const sortedCommanders = [...filteredCommanders].sort((a, b) => {
@@ -173,345 +197,352 @@ export function CommanderRanking() {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4 mb-6 md:flex-row"></div>
-          <div className="relative flex-grow w-full md:w-auto">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar comandante..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center w-full md:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-1"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-              </Button>
-
-              <Select
-                value={sortBy}
-                onValueChange={(value) => setSortBy(value as "winrate" | "wins" | "tournaments" | "name")}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="winrate">Winrate</SelectItem>
-                  <SelectItem value="wins">Vitórias</SelectItem>
-                  <SelectItem value="tournaments">Entradas</SelectItem>
-                  <SelectItem value="name">Nome</SelectItem>
-                  <SelectItem value="champion">Campeão</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Ordem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">Decrescente</SelectItem>
-                  <SelectItem value="asc">Crescente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="relative flex-grow w-full md:w-auto">
+          <div className="relative flex-grow">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar comandante..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
           </div>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center w-full md:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-1"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+            </Button>
 
-          {showFilters && (
-            <div className="space-y-4 p-4 bg-muted/50 rounded-md mb-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="winrate-range">
-                    Winrate: {minWinrate}% - {maxWinrate}%
-                  </Label>
-                  <div className="pt-2">
-                    <Slider
-                      id="winrate-range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[minWinrate, maxWinrate]}
-                      onValueChange={(value) => {
-                        setMinWinrate(value[0])
-                        setMaxWinrate(value[1])
-                      }}
-                    />
-                  </div>
-                </div>
+            <Select
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value as "winrate" | "wins" | "tournaments" | "name")}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="winrate">Winrate</SelectItem>
+                <SelectItem value="wins">Vitórias</SelectItem>
+                <SelectItem value="tournaments">Entradas</SelectItem>
+                <SelectItem value="name">Nome</SelectItem>
+                <SelectItem value="champion">Campeão</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Ordem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Decrescente</SelectItem>
+                <SelectItem value="asc">Crescente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="cmc-range">
-                    Custo de Mana: {minCmc} - {maxCmc}
-                  </Label>
-                  <div className="pt-2">
-                    <Slider
-                      id="cmc-range"
-                      min={0}
-                      max={20}
-                      step={1}
-                      value={[minCmc, maxCmc]}
-                      onValueChange={(value) => {
-                        setMinCmc(value[0])
-                        setMaxCmc(value[1])
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Cores</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {['W', 'U', 'B', 'R', 'G'].map((color) => (
-                      <Badge
-                        key={color}
-                        variant={selectedColors.includes(color) ? "default" : "outline"}
-                        className={`cursor-pointer ${getColorBadge(color)}`}
-                        onClick={() => {
-                          setSelectedColors((prev) =>
-                            prev.includes(color)
-                              ? prev.filter((c) => c !== color)
-                              : [...prev, color]
-                          )
-                        }}
-                      >
-                        {color}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Tipos</Label>
-                  <Select
-                    value={selectedTypes.join(",")}
-                    onValueChange={(value) => setSelectedTypes(value ? value.split(",") : [])}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione os tipos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[
-                        "Creature",
-                        "Planeswalker",
-                      ].map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {showFilters && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-md mb-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="winrate-range">
+                  Winrate: {minWinrate}% - {maxWinrate}%
+                </Label>
+                <div className="pt-2">
+                  <Slider
+                    id="winrate-range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={[minWinrate, maxWinrate]}
+                    onValueChange={(value) => {
+                      setMinWinrate(value[0])
+                      setMaxWinrate(value[1])
+                    }}
+                  />
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setMinWinrate(0)
-                    setMaxWinrate(100)
-                    setMinCmc(0)
-                    setMaxCmc(20)
-                    setSelectedColors([])
-                    setSelectedTypes([])
-                    setSearchTerm("")
-                    setSortBy("winrate")
-                    setSortOrder("desc")
-                  }}
-                >
-                  Limpar Filtros
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="cmc-range">
+                  Custo de Mana: {minCmc} - {maxCmc}
+                </Label>
+                <div className="pt-2">
+                  <Slider
+                    id="cmc-range"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={[minCmc, maxCmc]}
+                    onValueChange={(value) => {
+                      setMinCmc(value[0])
+                      setMaxCmc(value[1])
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          )}
 
-          <div className="rounded-md border overflow-x-auto">
-            <Table className="min-w-[800px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">Rank</TableHead>
-                  <TableHead>Comandante</TableHead>
-                  <TableHead>Cores</TableHead>
-                  <TableHead>Partner</TableHead>
-                  <TableHead className="text-right">Winrate</TableHead>
-                  <TableHead className="text-right">V/D/E</TableHead>
-                  <TableHead className="text-right">Campeão</TableHead>
-                  <TableHead className="text-right">Entradas</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array(5)
-                    .fill(0)
-                    .map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <Skeleton className="h-4 w-4" />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                            <Skeleton className="h-8 w-8 rounded-full" />
-                            <Skeleton className="h-4 w-32" />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-16" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-24" />
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Skeleton className="h-4 w-12 ml-auto" />
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Skeleton className="h-4 w-16 ml-auto" />
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Skeleton className="h-4 w-8 ml-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                ) : currentCommanders.length > 0 ? (
-                  currentCommanders.map((commander, index) => (
-                    <TableRow
-                      key={commander.id}
-                      className="cursor-pointer hover:bg-muted"
-                      onClick={() => setSelectedCommander(commander.commander)}
+              <div className="space-y-2">
+                <Label>Cores</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['W', 'U', 'B', 'R', 'G'].map((color) => (
+                    <Badge
+                      key={color}
+                      variant={selectedColors.includes(color) ? "default" : "outline"}
+                      className={`cursor-pointer ${getColorBadge(color)}`}
+                      onClick={() => {
+                        setSelectedColors((prev) =>
+                          prev.includes(color)
+                            ? prev.filter((c) => c !== color)
+                            : [...prev, color]
+                        )
+                      }}
                     >
-                      <TableCell className="font-medium">#{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                          {cardData[commander.commander] ? (
-                            <Avatar className="h-8 w-8 border-2 border-primary">
-                              <AvatarImage
-                                src={getCardImageUrl(cardData[commander.commander], "small")}
-                                alt={commander.commander}
-                                className="object-cover"
-                              />
-                              <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <Skeleton className="h-8 w-8 rounded-full" />
-                          )}
-                          <span>{commander.commander}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getColorBadge(commander.colors)}</TableCell>
-                      <TableCell>
-                        {commander.partner ? (
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                            <Badge variant="secondary" className="flex items-center gap-1">
-                              <span>Partner com</span>
-                              <span className="font-semibold">{commander.partner}</span>
-                            </Badge>
-                          </div>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        <Badge variant={commander.winrate >= 60 ? "default" : "outline"}>{commander.winrate}%</Badge>
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        {commander.wins}/{commander.losses}/{commander.draws}
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">{commander.champion}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap">{commander.entries}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                      Nenhum comandante encontrado com os filtros atuais.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      {color}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
 
-          {/* Paginação */}
-          {sortedCommanders.length > 0 && (
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-4 pt-4 border-t">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                <span className="text-sm text-muted-foreground">
-                  Mostrando {(currentPage - 1) * itemsPerPage + 1}-
-                  {Math.min(currentPage * itemsPerPage, sortedCommanders.length)} de {sortedCommanders.length}
-                </span>
-                <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                  <SelectTrigger className="w-[80px]">
-                    <SelectValue placeholder="10" />
+              <div className="space-y-2">
+                <Label>Tipos</Label>
+                <Select
+                  value={selectedTypes.join(",")}
+                  onValueChange={(value) => setSelectedTypes(value ? value.split(",") : [])}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione os tipos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
+                    {[
+                      "Creature",
+                      "Planeswalker",
+                    ].map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-center gap-1 w-full justify-center md:justify-end md:w-auto">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={goToFirstPage}
-                  disabled={currentPage === 1}
-                  title="Primeira página"
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={goToPreviousPage}
-                  disabled={currentPage === 1}
-                  title="Página anterior"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-
-                <span className="mx-2 text-sm whitespace-nowrap">
-                  Página {currentPage} de {totalPages}
-                </span>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  title="Próxima página"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={goToLastPage}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  title="Última página"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
-          )}
 
-          {/* Mostrar detalhes do comandante quando um comandante for selecionado */}
-          {selectedCommander && cardData[selectedCommander] && (
-            <CommanderDetails
-              commanderName={selectedCommander}
-              cardData={cardData[selectedCommander]}
-              onClose={() => setSelectedCommander(null)}
-              winrateData={top10Commanders.find((c) => c.commander === selectedCommander)}
-            />
-          )}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setMinWinrate(0)
+                  setMaxWinrate(100)
+                  setMinCmc(0)
+                  setMaxCmc(20)
+                  setSelectedColors([])
+                  setSelectedTypes([])
+                  setSearchTerm("")
+                  setSortBy("winrate")
+                  setSortOrder("desc")
+                }}
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[800px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">Rank</TableHead>
+                <TableHead>Comandante</TableHead>
+                <TableHead>Cores</TableHead>
+                <TableHead>Partner</TableHead>
+                <TableHead className="text-right">Winrate</TableHead>
+                <TableHead className="text-right">V/D/E</TableHead>
+                <TableHead className="text-right">Campeão</TableHead>
+                <TableHead className="text-right">Entradas</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Skeleton className="h-4 w-12 ml-auto" />
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Skeleton className="h-4 w-16 ml-auto" />
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Skeleton className="h-4 w-8 ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : currentCommanders.length > 0 ? (
+                currentCommanders.map((commander, index) => (
+                  <TableRow
+                    key={commander.id}
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={() => setSelectedCommander(commander.commander)}
+                  >
+                    <TableCell className="font-medium">#{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                        {cardData[commander.commander] ? (
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-8 w-8">
+                              {loadingCards[commander.commander] ? (
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                              ) : (
+                                <Avatar className="h-8 w-8 border-2 border-primary">
+                                  <AvatarImage
+                                    src={getCardImageUrl(cardData[commander.commander], "small")}
+                                    alt={commander.commander}
+                                    className="object-cover"
+                                  />
+                                  <AvatarFallback>{commander.commander.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                              )}
+                            </div>
+                            <span className="truncate">{commander.commander}</span>
+                          </div>
+                        ) : (
+                          <span className="truncate">{commander.commander}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getColorBadge(commander.colors)}</TableCell>
+                    <TableCell>
+                      {commander.partner ? (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <span>Partner com</span>
+                            <span className="font-semibold">{commander.partner}</span>
+                          </Badge>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      <Badge variant={commander.winrate >= 60 ? "default" : "outline"}>{commander.winrate}%</Badge>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      {commander.wins}/{commander.losses}/{commander.draws}
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{commander.champion}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{commander.entries}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                    Nenhum comandante encontrado com os filtros atuais.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Paginação */}
+        {sortedCommanders.length > 0 && (
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+              <span className="text-sm text-muted-foreground">
+                Mostrando {(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, sortedCommanders.length)} de {sortedCommanders.length}
+              </span>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-1 w-full justify-center md:justify-end md:w-auto">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToFirstPage}
+                disabled={currentPage === 1}
+                title="Primeira página"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                title="Página anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <span className="mx-2 text-sm whitespace-nowrap">
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                title="Próxima página"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToLastPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                title="Última página"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Mostrar detalhes do comandante quando um comandante for selecionado */}
+        {selectedCommander && cardData[selectedCommander] && (
+          <CommanderDetails
+            commanderName={selectedCommander}
+            cardData={cardData[selectedCommander]}
+            onClose={() => setSelectedCommander(null)}
+            winrateData={top10Commanders.find((c) => c.commander === selectedCommander)}
+          />
+        )}
       </CardContent>
     </Card>
   )
 }
-
