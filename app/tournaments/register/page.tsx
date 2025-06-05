@@ -330,7 +330,7 @@ export default function RegisterTournamentPage() {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="manual" id="manual" />
                   <Label htmlFor="manual" className="cursor-pointer">
-                    Registro Manual
+                    Registro Via Moxfield
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 mt-2 sm:mt-0">
