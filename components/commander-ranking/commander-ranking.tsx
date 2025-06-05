@@ -109,16 +109,22 @@ export function CommanderRanking() {
   }, [commanderRankingData]);
 
   const filteredCommanders = commanderRankingData.filter(
-    (commander) =>
-      commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      commander.winrate >= minWinrate &&
-      commander.winrate <= maxWinrate &&
-      commander.commander !== '-' &&
-      (selectedColors.length === 0 || commander.colors === selectedColors.join('')) &&
-      (cardData[commander.commander]?.mana_cost !== undefined ? 
-        (cardData[commander.commander] as any)?.cmc >= minCmc && 
-        (cardData[commander.commander] as any)?.cmc <= maxCmc : true) &&
-      (selectedTypes.length === 0 || (cardData[commander.commander]?.type_line && selectedTypes.some(type => cardData[commander.commander]?.type_line.toLowerCase().includes(type.toLowerCase()))))
+    (commander) => {
+      // Normalize color order for comparison
+      const commanderColorsSorted = commander.colors.split('').sort().join('');
+      const selectedColorsSorted = selectedColors.slice().sort().join('');
+      return (
+        commander.commander.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        commander.winrate >= minWinrate &&
+        commander.winrate <= maxWinrate &&
+        commander.commander !== '-' &&
+        (selectedColors.length === 0 || commanderColorsSorted === selectedColorsSorted) &&
+        (cardData[commander.commander]?.mana_cost !== undefined ? 
+          (cardData[commander.commander] as any)?.cmc >= minCmc && 
+          (cardData[commander.commander] as any)?.cmc <= maxCmc : true) &&
+        (selectedTypes.length === 0 || (cardData[commander.commander]?.type_line && selectedTypes.some(type => cardData[commander.commander]?.type_line.toLowerCase().includes(type.toLowerCase()))))
+      )
+    }
   )
   const sortedCommanders = [...filteredCommanders].sort((a, b) => {
     let comparison = 0
